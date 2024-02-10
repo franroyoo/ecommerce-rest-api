@@ -1,7 +1,9 @@
 package com.ecommerce.app.ecommercebackend.api.dto;
 
 import jakarta.validation.constraints.*;
+import lombok.Builder;
 
+@Builder
 public class RegistrationBody {
 
     @NotNull

@@ -24,6 +24,6 @@ public class OrderController {
 
     @GetMapping
     public List<WebOrder> getOrderList(@AuthenticationPrincipal LocalUser user){
-        return orderService.getOrders(user);
+        return orderService.getOrderList(user);
     }
 }

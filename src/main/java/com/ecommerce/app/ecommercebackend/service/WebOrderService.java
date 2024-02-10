@@ -17,7 +17,7 @@ public class WebOrderService {
         this.webOrderRepository = webOrderRepository;
     }
 
-    public List<WebOrder> getOrders(LocalUser user){
+    public List<WebOrder> getOrderList(LocalUser user){
         return webOrderRepository.findByLocalUser(user);
     }
 

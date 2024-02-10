@@ -39,32 +39,37 @@ public class UserService { // se comunica con el repositorio y lo vamos a usar e
     // esto sería como el metodo save() de la app con registro que hice antes
     public LocalUser registerUser(RegistrationBody registrationBody) throws UserAlreadyExistsException, EmailFailureException {
 
-        if(localUserRepository.findByUsernameIgnoreCase(registrationBody.getUsername()).isPresent() ||
-                localUserRepository.findByEmailIgnoreCase(registrationBody.getEmail()).isPresent()){
+
+        if (localUserRepository.findByUsernameIgnoreCase(registrationBody.getUsername()).isPresent() ||
+                localUserRepository.findByEmailIgnoreCase(registrationBody.getEmail()).isPresent()) {
             throw new UserAlreadyExistsException();
         }
 
-       LocalUser user = new LocalUser();
 
-       user.setUsername(registrationBody.getUsername());
-       user.setEmail(registrationBody.getEmail());
-       user.setFirstName(registrationBody.getFirstName());
-       user.setLastName(registrationBody.getLastName());
-       // TODO: Encrypt passwords!! (now encrypted)
-        user.setPassword(encryptionService.encryptPassword(registrationBody.getPassword())); // encrypting password
+        LocalUser user = new LocalUser();
+        user.setUsername(registrationBody.getUsername());
+        user.setEmail(registrationBody.getEmail());
+        user.setFirstName(registrationBody.getFirstName());
+        user.setLastName(registrationBody.getLastName());
 
-        // Armo el token de verificación del usuario registrado
-        VerificationToken verificationToken = createVerificationToken(user);
+        // Encrypt the password
+        user.setPassword(encryptionService.encryptPassword(registrationBody.getPassword()));
 
-        // Mando el mail de verificación
+
+        LocalUser savedUser = localUserRepository.save(user);
+
+        // Create a verification token for the registered user
+        VerificationToken verificationToken = createVerificationToken(savedUser);
+
+        // Send the verification email
         emailService.sendVerificationEmail(verificationToken);
 
-        // Guardo el token en la DB
+        // Save the verification token to the database
         verificationTokenRepository.save(verificationToken);
 
-        // Guardo el usuario en la DB
-        return localUserRepository.save(user);
+        return savedUser;
     }
+
 
     // Crear token de verificacion
     private VerificationToken createVerificationToken(LocalUser user){
@@ -134,7 +139,7 @@ public class UserService { // se comunica con el repositorio y lo vamos a usar e
 
             if (!user.isEmailVerified()){
                 user.setEmailVerified(true);
-                localUserRepository.save(user);
+                localUserRepository.save(user); // updating
                 verificationTokenRepository.deleteByLocalUser(user);
                 return true;
             }
