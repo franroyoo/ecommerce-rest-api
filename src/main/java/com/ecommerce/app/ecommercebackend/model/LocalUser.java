@@ -2,12 +2,18 @@ package com.ecommerce.app.ecommercebackend.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Entity
 @Table(name = "local_user")
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class LocalUser {
     @Id
     @GeneratedValue(strategy=GenerationType.IDENTITY)
@@ -35,7 +41,7 @@ public class LocalUser {
     private List<Address> addresses = new ArrayList<>(); // lazy could be better as the list gets larger
 
     @OneToMany(mappedBy = "localUser", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<VerificationToken> verificationTokens = new ArrayList<>();
+    private List<VerificationToken> verificationTokens;
 
     @Column(name = "email_verified", nullable = false)
     @OrderBy("id desc") // ordenar para saber cual es el ultimo token q nos mandaron
@@ -55,6 +61,17 @@ public class LocalUser {
 
     public void setVerificationTokens(List<VerificationToken> verificationTokens) {
         this.verificationTokens = verificationTokens;
+    }
+
+    public LocalUser(String username, String password, String email, String firstName, String lastName, List<Address> addresses, List<VerificationToken> verificationTokens, Boolean emailVerified) {
+        this.username = username;
+        this.password = password;
+        this.email = email;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.addresses = new ArrayList<>();
+        this.verificationTokens = new ArrayList<>();
+        this.emailVerified = emailVerified;
     }
 
     public List<Address> getAddresses() {

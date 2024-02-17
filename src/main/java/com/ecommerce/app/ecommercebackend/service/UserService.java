@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -82,6 +83,9 @@ public class UserService { // se comunica con el repositorio y lo vamos a usar e
         verificationToken.setLocalUser(user); // user
         verificationToken.setCreatedTimestamp(new Timestamp(System.currentTimeMillis())); // timestamp
 
+        if (user.getVerificationTokens() == null) {
+            user.setVerificationTokens(new ArrayList<>());
+        }
         // agrego token de verificacion al usuario
         user.getVerificationTokens().add(verificationToken); // sets bidirectional linking
 

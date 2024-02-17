@@ -1,11 +1,17 @@
 package com.ecommerce.app.ecommercebackend.model;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.NoArgsConstructor;
 
 import java.sql.Timestamp;
 
 @Entity
 @Table(name = "verification_token")
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class VerificationToken {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

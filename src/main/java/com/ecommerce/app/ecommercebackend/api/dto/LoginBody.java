@@ -2,7 +2,13 @@ package com.ecommerce.app.ecommercebackend.api.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.NoArgsConstructor;
 
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class LoginBody {
     @NotNull
     @NotBlank
