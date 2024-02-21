@@ -18,11 +18,11 @@ public class VerificationToken {
     @Column(name = "id", nullable = false)
     private Long id;
 
-    @Lob // when we create a token in db, give it the maximum amount of size possible
+    @Lob
     @Column(name = "token", nullable = false, unique = true)
     private String token;
 
-    @Column(name = "created_timestamp", nullable = false) // timestamp at which we created the jwt email token
+    @Column(name = "created_timestamp", nullable = false)
     private Timestamp createdTimestamp;
 
     @ManyToOne(optional = false)

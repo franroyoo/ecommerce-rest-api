@@ -20,8 +20,7 @@ public class RegistrationBody {
     private String email;
     @NotNull
     @NotBlank
-    // tambien puede agregarse con @Pattern algo con regex
-    @Pattern(regexp= "^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{8,}$") // 8 caracteres, 1 letra, 1 numero.
+    @Pattern(regexp= "^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{8,}$")
     @Size(min=4, max=32)
     private String password;
     @NotNull

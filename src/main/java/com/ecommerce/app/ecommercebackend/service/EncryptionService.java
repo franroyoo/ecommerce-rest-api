@@ -8,19 +8,19 @@ import org.springframework.stereotype.Service;
 @Service
 public class EncryptionService {
     @Value("${encryption.salt.rounds}")
-    private int saltRounds; // tecnicamente se inyecta y al instanciar en el constuctor es null, por eso uso @PostConstruct
+    private int saltRounds;
     private String salt;
 
     @PostConstruct
     public void postConstruct(){
-        salt = BCrypt.gensalt(saltRounds); // se genera el salt
+        salt = BCrypt.gensalt(saltRounds);
     }
 
     public String encryptPassword(String password){
-        return BCrypt.hashpw(password,salt); // con la password en plain text, genero el hash con el salt
+        return BCrypt.hashpw(password,salt);
     }
 
-    public boolean verifyPassword(String password, String hash){ // used for login
-        return BCrypt.checkpw(password, hash); // chequeo si es true la comparacion entre la pass y el hash
+    public boolean verifyPassword(String password, String hash){
+        return BCrypt.checkpw(password, hash);
     }
 }

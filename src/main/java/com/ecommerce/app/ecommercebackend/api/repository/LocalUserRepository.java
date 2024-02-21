@@ -9,7 +9,7 @@ import java.util.Optional;
 
 @Repository
 public interface LocalUserRepository extends ListCrudRepository<LocalUser, Long> {
-    Optional<LocalUser> findByUsernameIgnoreCase(String username); // Optional MUY recomendable para evitar NullPointerException
+    Optional<LocalUser> findByUsernameIgnoreCase(String username);
 
     Optional<LocalUser> findByEmailIgnoreCase(String email);
 

@@ -8,6 +8,11 @@ import com.ecommerce.app.ecommercebackend.exception.UserAlreadyExistsException;
 import com.ecommerce.app.ecommercebackend.exception.UserNotVerifiedException;
 import com.ecommerce.app.ecommercebackend.model.LocalUser;
 import com.ecommerce.app.ecommercebackend.service.UserService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -26,33 +31,88 @@ public class AuthenticationController {
         this.userService = userService;
     }
 
-    @PostMapping("/register") // endpoint for registration
-    public ResponseEntity registerUser(@Valid @RequestBody RegistrationBody registrationBody){ // paso un JSON
+    @Operation(summary = "Register user")
+    @ApiResponses(
+            value = {
+                @ApiResponse(
+                        responseCode = "200",
+                        description = "User registered successfully",
+                        content = @Content
+                ),
 
-        // spring transforma lo que le pasamos como JSON con postman a un objeto de tipo RegistrationBody
-        // el key que mandamos en postman tiene que ser igual al atributo de la clase (RegistrationBody)
-        // de esta forma puedo operar sobre el objeto tranquilamente
+                @ApiResponse(
+                        responseCode = "409",
+                        description = "User already exists",
+                        content = @Content
+                ),
 
+                @ApiResponse(
+                        responseCode = "500",
+                        description = "Email service failed",
+                        content = @Content
+                ),
+
+                @ApiResponse(
+                        responseCode = "400",
+                        description = "Invalid request body",
+                        content = @Content
+                )
+            }
+    )
+    @PostMapping("/register")
+    public ResponseEntity registerUser(@Valid @RequestBody RegistrationBody registrationBody){
         try{
-            userService.registerUser(registrationBody); // registro el user
-            return ResponseEntity.ok().build(); // .ok() es codigo 200, build es como "mandar"
+            userService.registerUser(registrationBody);
+            return ResponseEntity.ok().build();
         }catch(UserAlreadyExistsException ex){
-            return ResponseEntity.status(HttpStatus.CONFLICT).build(); // si existe la excepcion, tirar conflict y "mandar"
+            return ResponseEntity.status(HttpStatus.CONFLICT).build();
         } catch (EmailFailureException ex) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
 
     }
 
-    @PostMapping("/login") // endpoint for login
+    @Operation(summary = "Login user")
+    @ApiResponses(
+            value = {
+                @ApiResponse(
+                        responseCode = "200",
+                        description = "User logged in successfully",
+                        content = {@Content(mediaType = "application/json", schema = @Schema(implementation = LoginResponse.class))}
+                ),
+
+                @ApiResponse(
+                        responseCode = "403",
+                        description = "User not verified",
+                        content = @Content
+                ),
+
+                @ApiResponse(
+                        responseCode = "500",
+                        description = "Email service failed",
+                        content = @Content
+                ),
+
+                @ApiResponse(
+                        responseCode = "400",
+                        description = "Invalid request body",
+                        content = @Content
+                ),
+
+                @ApiResponse(
+                        responseCode = "401",
+                        description = "User not found",
+                        content = @Content
+                )
+            }
+    )
+    @PostMapping("/login")
     public ResponseEntity<LoginResponse> loginUser(@Valid @RequestBody LoginBody loginBody){
-         // logueo el user, obtengo el token JWT en string (puede darme NULL si no se encuentra el user)
         String jwt = null;
         try {
             jwt = userService.loginUser(loginBody);
         } catch (UserNotVerifiedException ex) {
 
-            // Si el user no está verificado, "response" informa la razón
             LoginResponse response = new LoginResponse();
             String reason = "USER_NOT_VERIFIED";
             if (ex.isNewEmailSent()){
@@ -60,31 +120,61 @@ public class AuthenticationController {
             }
 
             response.setSuccess(false);
-            response.setFailureReason(reason); // "USER_NOT_VERIFIED" o "USER_NOT_VERIFIED_EMAIL_RESENT"
+            response.setFailureReason(reason);
 
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
 
         } catch (EmailFailureException ex) {
-            // Si se captura esta excepción es porque hubo un error interno del server
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
 
-        if (jwt == null){ // si es null, manda un status BAD_REQUEST
+        if (jwt == null){
            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
        }else {
-           LoginResponse loginResponse = new LoginResponse(); // crea una instancia de LoginResponse para guardar el jwt (buena practica)
-           loginResponse.setJwt(jwt); // setteo el jwt
+           LoginResponse loginResponse = new LoginResponse();
+           loginResponse.setJwt(jwt);
             loginResponse.setSuccess(true);
-           return ResponseEntity.ok(loginResponse); // devuelvo status OK y muestro en postman el objeto loginResponse en JSON (osea, solo muestro el jwt)
+           return ResponseEntity.ok(loginResponse);
        }
 
     }
 
+    @Operation(summary = "Get logged in user information")
+    @ApiResponses(
+            value = {
+                @ApiResponse(
+                        responseCode = "200",
+                        description = "User information retrieved successfully",
+                        content = {@Content(mediaType = "application/json", schema = @Schema(implementation = LocalUser.class))}
+                ),
+
+                @ApiResponse(
+                        responseCode = "401",
+                        description = "Unauthorized",
+                        content = @Content
+                )
+            }
+    )
     @GetMapping("/me")
     public LocalUser getLoggedInUserProfile(@AuthenticationPrincipal LocalUser user){
         return user;
     }
 
+    @Operation(summary = "Verify user email")
+    @ApiResponses(
+            value = {
+                @ApiResponse(
+                        responseCode = "200",
+                        description = "User email verified successfully",
+                        content = @Content
+                ),
+                @ApiResponse(
+                        responseCode = "409",
+                        description = "User already verified",
+                        content = @Content
+                )
+            }
+    )
     @PostMapping("/verify")
     public ResponseEntity verifyEmail(@RequestParam String token){
         if (userService.verifyUser(token)){

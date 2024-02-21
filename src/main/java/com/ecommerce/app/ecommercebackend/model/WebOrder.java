@@ -7,7 +7,7 @@ import java.util.List;
 
 @Entity
 @Table(name = "web_order")
-public class WebOrder { // we call it WebOrder to avoid conflict with the keyword "Order" in sql
+public class WebOrder {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)

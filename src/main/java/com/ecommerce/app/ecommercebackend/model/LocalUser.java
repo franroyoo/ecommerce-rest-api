@@ -23,7 +23,7 @@ public class LocalUser {
     @Column(name = "username", nullable = false, unique = true)
     private String username;
 
-    @JsonIgnore // para que no se mande como json, porque es data para ser encapsulada
+    @JsonIgnore
     @Column(name = "password", nullable = false, length = 1000)
     private String password;
 
@@ -38,13 +38,13 @@ public class LocalUser {
 
     @JsonIgnore
     @OneToMany(mappedBy = "localUser", cascade = CascadeType.REMOVE, orphanRemoval = true)
-    private List<Address> addresses = new ArrayList<>(); // lazy could be better as the list gets larger
+    private List<Address> addresses = new ArrayList<>();
 
     @OneToMany(mappedBy = "localUser", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<VerificationToken> verificationTokens;
 
     @Column(name = "email_verified", nullable = false)
-    @OrderBy("id desc") // ordenar para saber cual es el ultimo token q nos mandaron
+    @OrderBy("id desc")
     private Boolean emailVerified = false;
 
     public Boolean isEmailVerified() {

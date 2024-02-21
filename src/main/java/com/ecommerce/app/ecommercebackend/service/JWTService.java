@@ -49,7 +49,7 @@ public class JWTService {
     }
 
     public String getUsername(String token){
-        return JWT.decode(token).getClaim(USERNAME_KEY).asString(); // decodea el token, dame el claim username_key como String
+        return JWT.decode(token).getClaim(USERNAME_KEY).asString();
     }
 
 
