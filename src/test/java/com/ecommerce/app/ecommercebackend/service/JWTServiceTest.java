@@ -5,36 +5,49 @@ import com.ecommerce.app.ecommercebackend.api.repository.LocalUserRepository;
 import com.ecommerce.app.ecommercebackend.model.LocalUser;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.TestPropertySource;
+
+import java.util.Optional;
 
 @SpringBootTest
 public class JWTServiceTest {
 
     @Autowired
     private JWTService jwtService;
-    @Autowired
-    private LocalUserRepository localUserRepository;
-
     @Test
     public void GivenLocalUser_WhenGenerateJWT_ThenReturnJWT(){
-        LocalUser user = localUserRepository.findByEmailIgnoreCase("UserA@junit.com").get();
+
+        LocalUser user = LocalUser.builder()
+                        .password("password")
+                                .email("email@gmail.com")
+                                        .username("username").build();
 
         Assertions.assertNotNull(jwtService.generateJWT(user));
     }
 
+
     @Test
     public void GivenLocalUser_WhenGenerateVerificationJWT_ThenReturnJWT(){
-        LocalUser user = localUserRepository.findByEmailIgnoreCase("UserA@junit.com").get();
+        LocalUser user = LocalUser.builder()
+                .password("password")
+                .email("email@gmail.com")
+                .username("username").build();
 
         Assertions.assertNotNull(jwtService.generateVerificationJWT(user));
     }
 
+
     @Test
     public void GivenJWT_WhenGetUsername_ThenReturnUsername(){
-        LocalUser user = localUserRepository.findByEmailIgnoreCase("UserA@junit.com").get();
-
-        Assertions.assertNotNull(jwtService.generateJWT(user));
+        LocalUser user = LocalUser.builder()
+                .password("password")
+                .email("email@gmail.com")
+                .username("username").build();
 
         String jwt = jwtService.generateJWT(user);
         String username = user.getUsername();

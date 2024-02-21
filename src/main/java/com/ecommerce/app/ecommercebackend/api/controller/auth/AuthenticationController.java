@@ -46,8 +46,8 @@ public class AuthenticationController {
 
     @PostMapping("/login") // endpoint for login
     public ResponseEntity<LoginResponse> loginUser(@Valid @RequestBody LoginBody loginBody){
-        String jwt = null; // logueo el user, obtengo el token JWT en string (puede darme NULL si no se encuentra el user)
-
+         // logueo el user, obtengo el token JWT en string (puede darme NULL si no se encuentra el user)
+        String jwt = null;
         try {
             jwt = userService.loginUser(loginBody);
         } catch (UserNotVerifiedException ex) {
