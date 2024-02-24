@@ -2,9 +2,15 @@ package com.ecommerce.app.ecommercebackend.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "web_order_quantities")
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class WebOrderQuantities {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

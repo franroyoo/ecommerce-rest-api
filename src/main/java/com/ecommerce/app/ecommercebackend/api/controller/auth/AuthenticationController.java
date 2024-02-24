@@ -149,7 +149,7 @@ public class AuthenticationController {
                 ),
 
                 @ApiResponse(
-                        responseCode = "401",
+                        responseCode = "403",
                         description = "Unauthorized",
                         content = @Content
                 )

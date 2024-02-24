@@ -25,7 +25,7 @@ import java.util.Optional;
 public class JWTRequestFilter extends OncePerRequestFilter {
 
     private JWTService jwtService;
-    private LocalUserRepository localUserRepository; // repositorio
+    private LocalUserRepository localUserRepository;
 
     @Autowired
     public JWTRequestFilter(JWTService jwtService, LocalUserRepository localUserRepository) {

@@ -17,7 +17,7 @@ public class WebOrder {
     @JoinColumn(name = "local_user_id", nullable = false)
     private LocalUser localUser;
 
-    @OneToMany(mappedBy = "webOrder", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @OneToMany(mappedBy = "webOrder", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<WebOrderQuantities> quantities = new ArrayList<>();
 
     @ManyToOne(optional = false)
@@ -48,4 +48,11 @@ public class WebOrder {
         this.id = id;
     }
 
+    public Address getAddress() {
+        return address;
+    }
+
+    public void setAddress(Address address) {
+        this.address = address;
+    }
 }

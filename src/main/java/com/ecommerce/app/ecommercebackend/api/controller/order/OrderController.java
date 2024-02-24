@@ -1,6 +1,9 @@
 package com.ecommerce.app.ecommercebackend.api.controller.order;
 
+import com.ecommerce.app.ecommercebackend.api.dto.OrderBody;
 import com.ecommerce.app.ecommercebackend.api.repository.WebOrderRepository;
+import com.ecommerce.app.ecommercebackend.exception.OutOfStockException;
+import com.ecommerce.app.ecommercebackend.exception.ProductDoesNotExistException;
 import com.ecommerce.app.ecommercebackend.model.LocalUser;
 import com.ecommerce.app.ecommercebackend.model.WebOrder;
 import com.ecommerce.app.ecommercebackend.service.WebOrderService;
@@ -8,11 +11,12 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -39,5 +43,19 @@ public class OrderController {
     @GetMapping
     public List<WebOrder> getOrderList(@AuthenticationPrincipal LocalUser user){
         return orderService.getOrderList(user);
+    }
+
+    @PostMapping("/create")
+    public ResponseEntity createOrder(@AuthenticationPrincipal LocalUser user, @Valid @RequestBody OrderBody orderBody){
+
+        try{
+            WebOrder order = orderService.createOrder(orderBody, user);
+            return ResponseEntity.ok(order);
+        }catch (OutOfStockException ex){
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }catch (ProductDoesNotExistException ex){
+            return ResponseEntity.status(HttpStatus.CONFLICT).build();
+        }
+
     }
 }

@@ -37,9 +37,10 @@ public class LocalUser {
     private String lastName;
 
     @JsonIgnore
-    @OneToMany(mappedBy = "localUser", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @OneToMany(mappedBy = "localUser", cascade = CascadeType.REMOVE, orphanRemoval = true, fetch=FetchType.EAGER)
     private List<Address> addresses = new ArrayList<>();
 
+    @JsonIgnore
     @OneToMany(mappedBy = "localUser", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<VerificationToken> verificationTokens;
 
