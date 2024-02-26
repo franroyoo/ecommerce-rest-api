@@ -8,6 +8,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.NoArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cglib.core.Local;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -33,15 +34,14 @@ public class JWTRequestFilter extends OncePerRequestFilter {
         this.localUserRepository = localUserRepository;
     }
 
-    // filtro que valida y procesa el JWT token
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 
         String tokenHeader = request.getHeader("Authorization");
         if (tokenHeader != null && tokenHeader.startsWith("Bearer ")){
-            String token = tokenHeader.substring(7); // obtengo el token
+            String token = tokenHeader.substring(7);
             try{
-                String username = jwtService.getUsername(token); // obtengo el username mediante el token
+                String username = jwtService.getUsername(token);
 
                 Optional<LocalUser> opUser = localUserRepository.findByUsernameIgnoreCase(username);
 
@@ -49,10 +49,11 @@ public class JWTRequestFilter extends OncePerRequestFilter {
 
                     LocalUser user = opUser.get();
 
-                    UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(user, null, new ArrayList<>()); // auth object
-                    authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                    SecurityContextHolder.getContext().setAuthentication(authentication);
-
+                    if (user.isEmailVerified()){
+                        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(user, null, new ArrayList<>());
+                        authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                        SecurityContextHolder.getContext().setAuthentication(authentication);
+                    }
                 }
             }catch(JWTDecodeException ex){
 

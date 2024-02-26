@@ -76,7 +76,6 @@ public class UserServiceTest {
 
         Assertions.assertThrows(UserAlreadyExistsException.class, () -> userService.registerUser(registrationBody));
 
-        // Verificar interacciones
         verify(localUserRepository, times(1)).findByUsernameIgnoreCase(registrationBody.getUsername());
         verify(localUserRepository, never()).findByEmailIgnoreCase(anyString());
         verify(encryptionService, never()).encryptPassword(anyString());
@@ -139,16 +138,12 @@ public class UserServiceTest {
 
         Assertions.assertNotNull(user);
 
-        // verifica que el método save fue llamado con cualquier instancia de LocalUser
         verify(localUserRepository).save(any(LocalUser.class));
 
-        // verifica que el método generateVerificationJWT fue llamado con el objeto user
         verify(jwtService).generateVerificationJWT(user);
 
-        // verifica que el método sendVerificationEmail fue llamado con cualquier instancia de VerificationToken
         verify(emailService).sendVerificationEmail(any(VerificationToken.class));
 
-        // verifica que el método save de verificationTokenRepository fue llamado con cualquier instancia de VerificationToken
         verify(verificationTokenRepository).save(any(VerificationToken.class));
     }
 

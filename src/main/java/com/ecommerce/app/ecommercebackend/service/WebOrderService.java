@@ -36,8 +36,6 @@ public class WebOrderService {
         return webOrderRepository.findByLocalUser(user);
     }
 
-    // TODO: Do unit and integration testing
-    // TODO: Document with Swagger the endpoint that calls this method
     @Transactional(readOnly = false)
     public WebOrder createOrder(OrderBody orderBody, LocalUser user) throws OutOfStockException, ProductDoesNotExistException {
 

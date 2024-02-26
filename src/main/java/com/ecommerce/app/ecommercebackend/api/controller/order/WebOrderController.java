@@ -1,7 +1,6 @@
 package com.ecommerce.app.ecommercebackend.api.controller.order;
 
 import com.ecommerce.app.ecommercebackend.api.dto.OrderBody;
-import com.ecommerce.app.ecommercebackend.api.repository.WebOrderRepository;
 import com.ecommerce.app.ecommercebackend.exception.OutOfStockException;
 import com.ecommerce.app.ecommercebackend.exception.ProductDoesNotExistException;
 import com.ecommerce.app.ecommercebackend.model.LocalUser;
@@ -22,11 +21,11 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/order")
-public class OrderController {
+public class WebOrderController {
     private WebOrderService orderService;
 
     @Autowired
-    public OrderController(WebOrderService orderService) {
+    public WebOrderController(WebOrderService orderService) {
         this.orderService = orderService;
     }
 
@@ -45,6 +44,32 @@ public class OrderController {
         return orderService.getOrderList(user);
     }
 
+    @Operation(summary = "Create order")
+    @ApiResponses(
+            value = {
+                @ApiResponse(
+                        responseCode = "200",
+                        description = "Create order successfully",
+                        content = @Content(mediaType = "application/json")
+                ),
+                @ApiResponse(
+                        responseCode = "400",
+                        description = "Out of stock",
+                        content = @Content
+                ),
+                @ApiResponse(
+                        responseCode = "409",
+                        description = "Product does not exist",
+                        content = @Content
+                ),
+
+                @ApiResponse(
+                    responseCode = "403",
+                        description = "User not authenticated",
+                        content = @Content
+                )
+            }
+    )
     @PostMapping("/create")
     public ResponseEntity createOrder(@AuthenticationPrincipal LocalUser user, @Valid @RequestBody OrderBody orderBody){
 

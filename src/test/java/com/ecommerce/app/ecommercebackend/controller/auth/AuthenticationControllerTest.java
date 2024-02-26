@@ -43,6 +43,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+//@SpringBootTest
+//@AutoConfigureMockMvc
+//@ExtendWith(MockitoExtension.class)
 @SpringBootTest
 @AutoConfigureMockMvc
 @ExtendWith(MockitoExtension.class)
@@ -57,7 +60,7 @@ public class AuthenticationControllerTest {
     @Autowired
     private ObjectMapper mapper;
 
-    @RegisterExtension // necesario para testear emails
+    @RegisterExtension
     private static GreenMailExtension greenMailExtension = new GreenMailExtension(ServerSetupTest.SMTP)
             .withConfiguration(GreenMailConfiguration.aConfig().withUser("springboot", "secret"))
             .withPerMethodLifecycle(true);
@@ -128,6 +131,8 @@ public class AuthenticationControllerTest {
                         .content(mapper.writeValueAsString(loginBody)))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.success", CoreMatchers.is(true)))
                 .andExpect(status().isOk());
+
+        Mockito.verify(userService, times(1)).loginUser(any(LoginBody.class));
     }
 
     @Test
