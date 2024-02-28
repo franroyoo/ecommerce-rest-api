@@ -60,7 +60,7 @@ public class WebOrderControllerTest {
 
         Mockito.when(orderService.getOrderList(Mockito.any(LocalUser.class))).thenReturn(orderList);
 
-        mockMvc.perform(get("/order").with(authentication(authenticatedUser)))
+        mockMvc.perform(get("/orders").with(authentication(authenticatedUser)))
                 .andDo(print())
                 .andExpect(MockMvcResultMatchers.status().isOk());
     }
@@ -73,7 +73,7 @@ public class WebOrderControllerTest {
 
         OrderBody orderBody = OrderBody.builder().products(Arrays.asList(new ProductBody(), new ProductBody())).build();
 
-        mockMvc.perform(post("/order/create").with(authentication(authenticatedUser))
+        mockMvc.perform(post("/order/new").with(authentication(authenticatedUser))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(mapper.writeValueAsString(orderBody)))
                 .andDo(print())
@@ -88,7 +88,7 @@ public class WebOrderControllerTest {
 
         OrderBody orderBody = OrderBody.builder().products(Arrays.asList(new ProductBody(), new ProductBody())).build();
 
-        mockMvc.perform(post("/order/create").with(authentication(authenticatedUser))
+        mockMvc.perform(post("/order/new").with(authentication(authenticatedUser))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(mapper.writeValueAsString(orderBody)))
                 .andDo(print())
@@ -102,7 +102,7 @@ public class WebOrderControllerTest {
 
         OrderBody orderBody = OrderBody.builder().products(Arrays.asList(new ProductBody(), new ProductBody())).build();
 
-        mockMvc.perform(post("/order/create").with(authentication(authenticatedUser))
+        mockMvc.perform(post("/order/new").with(authentication(authenticatedUser))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(mapper.writeValueAsString(orderBody)))
                 .andDo(print())

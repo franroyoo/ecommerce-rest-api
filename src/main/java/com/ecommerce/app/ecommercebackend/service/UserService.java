@@ -47,6 +47,7 @@ public class UserService {
 
 
         LocalUser user = new LocalUser();
+
         user.setUsername(registrationBody.getUsername());
         user.setEmail(registrationBody.getEmail());
         user.setFirstName(registrationBody.getFirstName());
