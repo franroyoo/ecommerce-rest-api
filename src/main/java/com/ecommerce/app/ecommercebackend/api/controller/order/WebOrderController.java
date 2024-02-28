@@ -39,7 +39,7 @@ public class WebOrderController {
                 )
             }
     )
-    @GetMapping
+    @GetMapping("/list")
     public List<WebOrder> getOrderList(@AuthenticationPrincipal LocalUser user){
         return orderService.getOrderList(user);
     }
@@ -70,7 +70,7 @@ public class WebOrderController {
                 )
             }
     )
-    @PostMapping("/create")
+    @PostMapping("/new")
     public ResponseEntity createOrder(@AuthenticationPrincipal LocalUser user, @Valid @RequestBody OrderBody orderBody){
 
         try{
