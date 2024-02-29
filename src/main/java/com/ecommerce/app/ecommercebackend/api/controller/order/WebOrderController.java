@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping
+@RequestMapping("/order")
 public class WebOrderController {
     private WebOrderService orderService;
 
@@ -39,7 +39,7 @@ public class WebOrderController {
                 )
             }
     )
-    @GetMapping("/orders")
+    @GetMapping("/list")
     public List<WebOrder> getOrderList(@AuthenticationPrincipal LocalUser user){
         return orderService.getOrderList(user);
     }
@@ -70,7 +70,7 @@ public class WebOrderController {
                 )
             }
     )
-    @PostMapping("/order/new")
+    @PostMapping("/new")
     public ResponseEntity createOrder(@AuthenticationPrincipal LocalUser user, @Valid @RequestBody OrderBody orderBody){
 
         try{

@@ -14,11 +14,19 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
+import org.apache.catalina.User;
+import org.apache.coyote.Response;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.actuate.autoconfigure.observation.ObservationProperties;
+import org.springframework.cglib.core.Local;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.context.request.async.DeferredResult;
+
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 @RestController
 @RequestMapping("/auth")
@@ -70,6 +78,27 @@ public class AuthenticationController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
 
+    }
+    @PostMapping("/register/async")
+    public DeferredResult<ResponseEntity> registerUserAsync(@Valid @RequestBody RegistrationBody registrationBody) throws EmailFailureException, UserAlreadyExistsException {
+        CompletableFuture<LocalUser> userFuture = userService.registerUserAsync(registrationBody);
+        DeferredResult<ResponseEntity> deferredResult = new DeferredResult<>();
+
+        userFuture.whenComplete((user, ex) -> {
+            if (ex == null) {
+                deferredResult.setResult(ResponseEntity.status(HttpStatus.OK).build());
+            } else {
+                if (ex.getCause() instanceof UserAlreadyExistsException) {
+                    deferredResult.setResult(ResponseEntity.status(HttpStatus.CONFLICT).build());
+                } else if (ex.getCause() instanceof EmailFailureException) {
+                    deferredResult.setResult(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build());
+                } else {
+                    deferredResult.setResult(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build());
+                }
+            }
+        });
+
+        return deferredResult;
     }
 
     @Operation(summary = "Login user")
