@@ -1,9 +1,13 @@
 package com.ecommerce.app.ecommercebackend.api.controller.product;
 
+import com.ecommerce.app.ecommercebackend.exception.ProductDoesNotExistException;
 import com.ecommerce.app.ecommercebackend.model.Product;
 import com.ecommerce.app.ecommercebackend.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -23,4 +27,15 @@ public class ProductController {
     public List<Product> getProductList(){
         return productService.getProductList();
     }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<Product> getProductById(@PathVariable Long id){
+        try{
+            Product product = productService.getProductById(id);
+            return ResponseEntity.status(HttpStatus.OK).body(product);
+        }catch (ProductDoesNotExistException e){
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
+    }
+
 }

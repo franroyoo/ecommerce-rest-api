@@ -34,7 +34,7 @@ public class ProductControllerTest {
     private ProductService productService;
 
     @Test
-    public void testGetProductList() throws Exception {
+    public void WhenGetMappingProductList_ThenReturnProductList() throws Exception {
 
        List<Product> productList = Arrays.asList(new Product(), new Product(), new Product());
 
@@ -44,5 +44,14 @@ public class ProductControllerTest {
         mockMvc.perform(get("/product")).andDo(print()).andExpect(status().is(HttpStatus.OK.value()));
 
         //Mockito.verify(productService, Mockito.times(1)).getProductList();
+    }
+
+    @Test
+    public void WhenGetMappingProductById_ThenReturnProduct() throws Exception {
+
+        Product product = new Product();
+        Mockito.when(productService.getProductById(Mockito.any(Long.class))).thenReturn(product);
+
+        mockMvc.perform(get("/product/{id}", 1L)).andDo(print()).andExpect(status().is(HttpStatus.OK.value()));
     }
 }

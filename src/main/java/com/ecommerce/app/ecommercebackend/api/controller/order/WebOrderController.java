@@ -1,6 +1,7 @@
 package com.ecommerce.app.ecommercebackend.api.controller.order;
 
 import com.ecommerce.app.ecommercebackend.api.dto.OrderBody;
+import com.ecommerce.app.ecommercebackend.exception.OrderDoesNotExistException;
 import com.ecommerce.app.ecommercebackend.exception.OutOfStockException;
 import com.ecommerce.app.ecommercebackend.exception.ProductDoesNotExistException;
 import com.ecommerce.app.ecommercebackend.model.LocalUser;
@@ -82,5 +83,15 @@ public class WebOrderController {
             return ResponseEntity.status(HttpStatus.CONFLICT).build();
         }
 
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity deleteOrder(@AuthenticationPrincipal LocalUser user, @PathVariable Long id){
+        try{
+            orderService.deleteOrder(id);
+            return ResponseEntity.status(HttpStatus.OK).build();
+        }catch (OrderDoesNotExistException ex){
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
     }
 }

@@ -27,7 +27,7 @@ public class Product {
     private String longDescription;
 
     @Column(name = "price", nullable = false)
-    private String price;
+    private Long price;
 
     @JsonIgnore
     @OneToOne(mappedBy = "product", cascade = CascadeType.REMOVE, optional = false, orphanRemoval = true)
@@ -41,11 +41,11 @@ public class Product {
         this.inventory = inventory;
     }
 
-    public String getPrice() {
+    public Long getPrice() {
         return price;
     }
 
-    public void setPrice(String price) {
+    public void setPrice(Long price) {
         this.price = price;
     }
 
