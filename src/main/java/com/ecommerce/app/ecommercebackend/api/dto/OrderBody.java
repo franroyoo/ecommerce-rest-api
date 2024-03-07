@@ -19,4 +19,8 @@ public class OrderBody {
 
     @NotNull
     private List<ProductBody> products;
+
+    @NotNull
+    @NotBlank
+    private String address_line_1;
 }

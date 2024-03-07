@@ -2,16 +2,15 @@ package com.ecommerce.app.ecommercebackend.service;
 
 import com.ecommerce.app.ecommercebackend.api.dto.OrderBody;
 import com.ecommerce.app.ecommercebackend.api.dto.ProductBody;
+import com.ecommerce.app.ecommercebackend.api.repository.AddressRepository;
 import com.ecommerce.app.ecommercebackend.api.repository.InventoryRepository;
 import com.ecommerce.app.ecommercebackend.api.repository.ProductRepository;
 import com.ecommerce.app.ecommercebackend.api.repository.WebOrderRepository;
+import com.ecommerce.app.ecommercebackend.exception.AddressDoesNotExistException;
 import com.ecommerce.app.ecommercebackend.exception.OrderDoesNotExistException;
 import com.ecommerce.app.ecommercebackend.exception.OutOfStockException;
 import com.ecommerce.app.ecommercebackend.exception.ProductDoesNotExistException;
-import com.ecommerce.app.ecommercebackend.model.LocalUser;
-import com.ecommerce.app.ecommercebackend.model.Product;
-import com.ecommerce.app.ecommercebackend.model.WebOrder;
-import com.ecommerce.app.ecommercebackend.model.WebOrderQuantities;
+import com.ecommerce.app.ecommercebackend.model.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,12 +26,14 @@ public class WebOrderService {
     private WebOrderRepository webOrderRepository;
     private ProductRepository productRepository;
     private InventoryRepository inventoryRepository;
+    private AddressRepository addressRepository;
 
     @Autowired
-    public WebOrderService(WebOrderRepository webOrderRepository, ProductRepository productRepository, InventoryRepository inventoryRepository) {
+    public WebOrderService(WebOrderRepository webOrderRepository, ProductRepository productRepository, InventoryRepository inventoryRepository, AddressRepository addressRepository) {
         this.webOrderRepository = webOrderRepository;
         this.productRepository = productRepository;
         this.inventoryRepository = inventoryRepository;
+        this.addressRepository = addressRepository;
     }
 
     public List<WebOrder> getOrderList(LocalUser user){
@@ -42,11 +43,12 @@ public class WebOrderService {
     @Transactional(readOnly = false)
     public WebOrder createOrder(OrderBody orderBody, LocalUser user) throws OutOfStockException, ProductDoesNotExistException {
 
-        // TODO: Refactor logic to add Address through JSON (use AddressService to create endpoint for adding address too)
-
         List<WebOrderQuantities> orderQuantities = new ArrayList<>();
 
         WebOrder order = new WebOrder();
+
+        Optional<Address> opAddress = addressRepository.findByAddressLine1(orderBody.getAddress_line_1());
+        Address address = opAddress.orElseThrow(AddressDoesNotExistException::new);
 
         for (ProductBody productDTO : orderBody.getProducts()){
 
@@ -80,7 +82,7 @@ public class WebOrderService {
 
         order.setLocalUser(user);
         order.setQuantities(orderQuantities);
-        order.setAddress(user.getAddresses().get(0));
+        order.setAddress(address);
 
         WebOrder savedOrder = webOrderRepository.save(order);
 

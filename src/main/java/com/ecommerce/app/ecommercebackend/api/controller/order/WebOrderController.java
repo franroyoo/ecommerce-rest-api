@@ -1,6 +1,7 @@
 package com.ecommerce.app.ecommercebackend.api.controller.order;
 
 import com.ecommerce.app.ecommercebackend.api.dto.OrderBody;
+import com.ecommerce.app.ecommercebackend.exception.AddressDoesNotExistException;
 import com.ecommerce.app.ecommercebackend.exception.OrderDoesNotExistException;
 import com.ecommerce.app.ecommercebackend.exception.OutOfStockException;
 import com.ecommerce.app.ecommercebackend.exception.ProductDoesNotExistException;
@@ -79,7 +80,7 @@ public class WebOrderController {
             return ResponseEntity.ok(order);
         }catch (OutOfStockException ex){
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-        }catch (ProductDoesNotExistException ex){
+        }catch (ProductDoesNotExistException | AddressDoesNotExistException ex){
             return ResponseEntity.status(HttpStatus.CONFLICT).build();
         }
 
