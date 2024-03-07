@@ -6,12 +6,10 @@ import com.ecommerce.app.ecommercebackend.api.repository.AddressRepository;
 import com.ecommerce.app.ecommercebackend.api.repository.InventoryRepository;
 import com.ecommerce.app.ecommercebackend.api.repository.ProductRepository;
 import com.ecommerce.app.ecommercebackend.api.repository.WebOrderRepository;
-import com.ecommerce.app.ecommercebackend.exception.AddressDoesNotExistException;
-import com.ecommerce.app.ecommercebackend.exception.OrderDoesNotExistException;
-import com.ecommerce.app.ecommercebackend.exception.OutOfStockException;
-import com.ecommerce.app.ecommercebackend.exception.ProductDoesNotExistException;
+import com.ecommerce.app.ecommercebackend.exception.*;
 import com.ecommerce.app.ecommercebackend.model.*;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -41,14 +39,14 @@ public class WebOrderService {
     }
 
     @Transactional(readOnly = false)
-    public WebOrder createOrder(OrderBody orderBody, LocalUser user) throws OutOfStockException, ProductDoesNotExistException {
+    public WebOrder createOrder(OrderBody orderBody, LocalUser user){
 
         List<WebOrderQuantities> orderQuantities = new ArrayList<>();
 
         WebOrder order = new WebOrder();
 
         Optional<Address> opAddress = addressRepository.findByAddressLine1(orderBody.getAddress_line_1());
-        Address address = opAddress.orElseThrow(AddressDoesNotExistException::new);
+        Address address = opAddress.orElseThrow(() -> new ApiResponseFailureException(HttpStatus.BAD_REQUEST, "Address not found"));
 
         for (ProductBody productDTO : orderBody.getProducts()){
 
@@ -62,7 +60,7 @@ public class WebOrderService {
 
                 if (productDTO.getQuantity() > inventoryQuantityForProduct){
                     log.warn("Out of stock for product {}", product.getId());
-                    throw new OutOfStockException();
+                    throw new ApiResponseFailureException(HttpStatus.CONFLICT, "Out of Stock for product " + product.getId());
                 }else{
                     WebOrderQuantities webOrderQuantities = WebOrderQuantities.builder()
                             .product(product)
@@ -75,7 +73,7 @@ public class WebOrderService {
                 }
 
             }else {
-                throw new ProductDoesNotExistException();
+                throw new ApiResponseFailureException(HttpStatus.BAD_REQUEST, "Product not found");
             }
 
         }

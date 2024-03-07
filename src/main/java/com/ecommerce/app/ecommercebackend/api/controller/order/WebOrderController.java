@@ -1,10 +1,7 @@
 package com.ecommerce.app.ecommercebackend.api.controller.order;
 
 import com.ecommerce.app.ecommercebackend.api.dto.OrderBody;
-import com.ecommerce.app.ecommercebackend.exception.AddressDoesNotExistException;
-import com.ecommerce.app.ecommercebackend.exception.OrderDoesNotExistException;
-import com.ecommerce.app.ecommercebackend.exception.OutOfStockException;
-import com.ecommerce.app.ecommercebackend.exception.ProductDoesNotExistException;
+import com.ecommerce.app.ecommercebackend.exception.*;
 import com.ecommerce.app.ecommercebackend.model.LocalUser;
 import com.ecommerce.app.ecommercebackend.model.WebOrder;
 import com.ecommerce.app.ecommercebackend.service.WebOrderService;
@@ -73,17 +70,9 @@ public class WebOrderController {
             }
     )
     @PostMapping("/new")
-    public ResponseEntity createOrder(@AuthenticationPrincipal LocalUser user, @Valid @RequestBody OrderBody orderBody){
-
-        try{
-            WebOrder order = orderService.createOrder(orderBody, user);
-            return ResponseEntity.ok(order);
-        }catch (OutOfStockException ex){
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-        }catch (ProductDoesNotExistException | AddressDoesNotExistException ex){
-            return ResponseEntity.status(HttpStatus.CONFLICT).build();
-        }
-
+    public ResponseEntity<Object> createOrder(@AuthenticationPrincipal LocalUser user, @Valid @RequestBody OrderBody orderBody){
+        WebOrder order = orderService.createOrder(orderBody, user);
+        return ResponseEntity.ok(order);
     }
 
     @DeleteMapping("/{id}")

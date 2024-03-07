@@ -65,6 +65,7 @@ public class WebOrderControllerTest {
                 .andExpect(MockMvcResultMatchers.status().isOk());
     }
 
+    // TODO: Refactor unit testing for order creation (exception handling changed)
     @Test
     @WithUserDetails
     public void WhenPostMappingCreateOrder_ThenReturn200() throws Exception {
