@@ -30,12 +30,8 @@ public class ProductController {
 
     @GetMapping("/{id}")
     public ResponseEntity<Product> getProductById(@PathVariable Long id){
-        try{
-            Product product = productService.getProductById(id);
-            return ResponseEntity.status(HttpStatus.OK).body(product);
-        }catch (ProductDoesNotExistException e){
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
-        }
+        Product product = productService.getProductById(id);
+        return ResponseEntity.ok(product);
     }
 
 }

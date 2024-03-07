@@ -89,7 +89,7 @@ public class WebOrderService {
 
     @Transactional
     public void deleteOrder(Long id){
-        webOrderRepository.findById(id).orElseThrow(OrderDoesNotExistException::new);
+        webOrderRepository.findById(id).orElseThrow(() -> new ApiResponseFailureException(HttpStatus.BAD_REQUEST, "Order not found"));
         webOrderRepository.deleteById(id);
     }
 }

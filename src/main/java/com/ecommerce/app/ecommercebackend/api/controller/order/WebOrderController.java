@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.actuate.autoconfigure.metrics.MetricsProperties;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -70,18 +71,14 @@ public class WebOrderController {
             }
     )
     @PostMapping("/new")
-    public ResponseEntity<Object> createOrder(@AuthenticationPrincipal LocalUser user, @Valid @RequestBody OrderBody orderBody){
+    public ResponseEntity<WebOrder> createOrder(@AuthenticationPrincipal LocalUser user, @Valid @RequestBody OrderBody orderBody){
         WebOrder order = orderService.createOrder(orderBody, user);
         return ResponseEntity.ok(order);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity deleteOrder(@AuthenticationPrincipal LocalUser user, @PathVariable Long id){
-        try{
-            orderService.deleteOrder(id);
-            return ResponseEntity.status(HttpStatus.OK).build();
-        }catch (OrderDoesNotExistException ex){
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
+    public ResponseEntity<Object> deleteOrder(@AuthenticationPrincipal LocalUser user, @PathVariable Long id){
+        orderService.deleteOrder(id);
+        return ResponseEntity.ok().build();
     }
 }
