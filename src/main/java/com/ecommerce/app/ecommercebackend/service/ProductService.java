@@ -2,7 +2,6 @@ package com.ecommerce.app.ecommercebackend.service;
 
 import com.ecommerce.app.ecommercebackend.api.repository.ProductRepository;
 import com.ecommerce.app.ecommercebackend.exception.ApiResponseFailureException;
-import com.ecommerce.app.ecommercebackend.exception.ProductDoesNotExistException;
 import com.ecommerce.app.ecommercebackend.model.Product;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;

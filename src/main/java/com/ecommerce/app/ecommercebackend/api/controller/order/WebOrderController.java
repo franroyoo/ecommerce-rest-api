@@ -12,7 +12,9 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.autoconfigure.metrics.MetricsProperties;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -71,9 +73,14 @@ public class WebOrderController {
             }
     )
     @PostMapping("/new")
-    public ResponseEntity<WebOrder> createOrder(@AuthenticationPrincipal LocalUser user, @Valid @RequestBody OrderBody orderBody){
-        WebOrder order = orderService.createOrder(orderBody, user);
-        return ResponseEntity.ok(order);
+    public ResponseEntity<byte[]> createOrder(@AuthenticationPrincipal LocalUser user, @Valid @RequestBody OrderBody orderBody){
+
+        byte[] orderPdf = orderService.createOrder(orderBody, user);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_PDF);
+
+        return ResponseEntity.ok().headers(headers).body(orderPdf);
     }
 
     @DeleteMapping("/{id}")

@@ -2,6 +2,8 @@ package com.ecommerce.app.ecommercebackend.service;
 
 import com.ecommerce.app.ecommercebackend.api.dto.OrderBody;
 import com.ecommerce.app.ecommercebackend.api.dto.ProductBody;
+import com.ecommerce.app.ecommercebackend.api.dto.invoice.InvoiceJsonBody;
+import com.ecommerce.app.ecommercebackend.api.dto.invoice.ItemBody;
 import com.ecommerce.app.ecommercebackend.api.repository.AddressRepository;
 import com.ecommerce.app.ecommercebackend.api.repository.InventoryRepository;
 import com.ecommerce.app.ecommercebackend.api.repository.ProductRepository;
@@ -9,6 +11,7 @@ import com.ecommerce.app.ecommercebackend.api.repository.WebOrderRepository;
 import com.ecommerce.app.ecommercebackend.exception.*;
 import com.ecommerce.app.ecommercebackend.model.*;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +20,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -25,13 +29,18 @@ public class WebOrderService {
     private ProductRepository productRepository;
     private InventoryRepository inventoryRepository;
     private AddressRepository addressRepository;
+    private InvoiceService invoiceService;
+
+    @Value("${email.developer}")
+    private String developerEmail;
 
     @Autowired
-    public WebOrderService(WebOrderRepository webOrderRepository, ProductRepository productRepository, InventoryRepository inventoryRepository, AddressRepository addressRepository) {
+    public WebOrderService(WebOrderRepository webOrderRepository, ProductRepository productRepository, InventoryRepository inventoryRepository, AddressRepository addressRepository, InvoiceService invoiceService) {
         this.webOrderRepository = webOrderRepository;
         this.productRepository = productRepository;
         this.inventoryRepository = inventoryRepository;
         this.addressRepository = addressRepository;
+        this.invoiceService = invoiceService;
     }
 
     public List<WebOrder> getOrderList(LocalUser user){
@@ -39,7 +48,7 @@ public class WebOrderService {
     }
 
     @Transactional(readOnly = false)
-    public WebOrder createOrder(OrderBody orderBody, LocalUser user){
+    public byte[] createOrder(OrderBody orderBody, LocalUser user){
 
         List<WebOrderQuantities> orderQuantities = new ArrayList<>();
 
@@ -82,9 +91,27 @@ public class WebOrderService {
         order.setQuantities(orderQuantities);
         order.setAddress(address);
 
-        WebOrder savedOrder = webOrderRepository.save(order);
+        webOrderRepository.save(order);
 
-        return savedOrder;
+        InvoiceJsonBody invoiceJsonBody = InvoiceJsonBody.builder()
+                .to(user.getFirstName() + " " + user.getLastName())
+                .notes("For any questions regarding your order, please contact me at " + developerEmail)
+                .items(convertToItemBodyList(orderQuantities))
+                .number(order.getId())
+                .ship_to(address.getAddressLine1())
+                .build();
+
+        return invoiceService.generateInvoice(invoiceJsonBody);
+    }
+
+    private List<ItemBody> convertToItemBodyList(List<WebOrderQuantities> orderQuantities){
+        return orderQuantities.stream()
+                .map(wq -> ItemBody.builder()
+                        .name(wq.getProduct().getName())
+                        .quantity(wq.getQuantity())
+                        .unit_cost(wq.getProduct().getPrice())
+                        .build())
+                .collect(Collectors.toList());
     }
 
     @Transactional
