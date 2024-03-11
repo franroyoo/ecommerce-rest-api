@@ -1,17 +1,18 @@
 package com.ecommerce.app.ecommercebackend.exception;
 
+import com.ecommerce.app.ecommercebackend.validation.FailureType;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 
 @Getter
-@RequiredArgsConstructor
 public class ApiResponseFailureException extends RuntimeException{
 
-    private final HttpStatus httpStatus;
+    private final FailureType failureType;
 
-    public ApiResponseFailureException(HttpStatus httpStatus, String message){
-        super(message);
-        this.httpStatus = httpStatus;
+    private String detail;
+
+    public ApiResponseFailureException(FailureType failureType, String detail){
+        this.failureType = failureType;
+        this.detail = detail;
     }
 }

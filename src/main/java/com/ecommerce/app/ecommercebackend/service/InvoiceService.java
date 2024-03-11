@@ -2,6 +2,7 @@ package com.ecommerce.app.ecommercebackend.service;
 
 import com.ecommerce.app.ecommercebackend.api.dto.invoice.InvoiceJsonBody;
 import com.ecommerce.app.ecommercebackend.exception.ApiResponseFailureException;
+import com.ecommerce.app.ecommercebackend.validation.FailureType;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -28,7 +29,8 @@ public class InvoiceService {
             ResponseEntity<byte[]> responseEntity = restTemplate.postForEntity(URI, invoiceBodyHttpEntity, byte[].class);
             return responseEntity.getBody();
         }catch (Exception e){
-            throw new ApiResponseFailureException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to generate invoice");
+            throw new ApiResponseFailureException(FailureType.INVOICE_GENERATION_FAILURE,
+                    "Invoice generation failed due to an internal error. Try again later");
         }
 
     }

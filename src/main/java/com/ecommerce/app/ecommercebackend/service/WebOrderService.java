@@ -10,6 +10,7 @@ import com.ecommerce.app.ecommercebackend.api.repository.ProductRepository;
 import com.ecommerce.app.ecommercebackend.api.repository.WebOrderRepository;
 import com.ecommerce.app.ecommercebackend.exception.*;
 import com.ecommerce.app.ecommercebackend.model.*;
+import com.ecommerce.app.ecommercebackend.validation.FailureType;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -55,7 +56,8 @@ public class WebOrderService {
         WebOrder order = new WebOrder();
 
         Optional<Address> opAddress = addressRepository.findByAddressLine1(orderBody.getAddress_line_1());
-        Address address = opAddress.orElseThrow(() -> new ApiResponseFailureException(HttpStatus.BAD_REQUEST, "Address not found"));
+        Address address = opAddress.orElseThrow(() -> new ApiResponseFailureException(FailureType.ADDRESS_NOT_FOUND,
+                "The address does not exist in your account. Try an existing address or add a new one"));
 
         for (ProductBody productDTO : orderBody.getProducts()){
 
@@ -69,7 +71,8 @@ public class WebOrderService {
 
                 if (productDTO.getQuantity() > inventoryQuantityForProduct){
                     log.warn("Out of stock for product {}", product.getId());
-                    throw new ApiResponseFailureException(HttpStatus.CONFLICT, "Out of Stock for product " + product.getId());
+                    throw new ApiResponseFailureException(FailureType.OUT_OF_STOCK,
+                            "No stock for the number of products requested for product id " + productDTO.getProductId());
                 }else{
                     WebOrderQuantities webOrderQuantities = WebOrderQuantities.builder()
                             .product(product)
@@ -82,7 +85,7 @@ public class WebOrderService {
                 }
 
             }else {
-                throw new ApiResponseFailureException(HttpStatus.BAD_REQUEST, "Product not found");
+                throw new ApiResponseFailureException(FailureType.PRODUCT_NOT_FOUND, "Product could not be found for id " + productDTO.getProductId());
             }
 
         }
@@ -116,7 +119,8 @@ public class WebOrderService {
 
     @Transactional
     public void deleteOrder(Long id){
-        webOrderRepository.findById(id).orElseThrow(() -> new ApiResponseFailureException(HttpStatus.BAD_REQUEST, "Order not found"));
+        webOrderRepository.findById(id).orElseThrow(() -> new ApiResponseFailureException(FailureType.ORDER_NOT_FOUND,
+                "Your order id does not exist. Make sure to delete the correct one"));
         webOrderRepository.deleteById(id);
     }
 }

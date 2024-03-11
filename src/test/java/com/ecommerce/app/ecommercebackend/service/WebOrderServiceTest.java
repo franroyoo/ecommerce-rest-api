@@ -2,6 +2,7 @@ package com.ecommerce.app.ecommercebackend.service;
 
 import com.ecommerce.app.ecommercebackend.api.dto.OrderBody;
 import com.ecommerce.app.ecommercebackend.api.dto.ProductBody;
+import com.ecommerce.app.ecommercebackend.api.dto.invoice.InvoiceJsonBody;
 import com.ecommerce.app.ecommercebackend.api.repository.AddressRepository;
 import com.ecommerce.app.ecommercebackend.api.repository.InventoryRepository;
 import com.ecommerce.app.ecommercebackend.api.repository.ProductRepository;
@@ -11,6 +12,7 @@ import com.ecommerce.app.ecommercebackend.model.Address;
 import com.ecommerce.app.ecommercebackend.model.LocalUser;
 import com.ecommerce.app.ecommercebackend.model.Product;
 import com.ecommerce.app.ecommercebackend.model.WebOrder;
+import com.ecommerce.app.ecommercebackend.validation.FailureType;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -19,7 +21,6 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.HttpStatus;
 
 import java.util.Arrays;
 import java.util.Optional;
@@ -40,11 +41,14 @@ public class WebOrderServiceTest {
     @Mock
     private AddressRepository addressRepository;
 
+    @Mock
+    private InvoiceService invoiceService;
+
     @InjectMocks
     private WebOrderService webOrderService;
 
     @Test
-    public void GivenOrderBody_WhenCreateOrder_ThenCreateOrderSuccessfully(){
+    public void GivenOrderBody_WhenCreateOrder_ThenCreateOrderSuccessfullyAndReturnInvoice(){
 
         Mockito.when(addressRepository.findByAddressLine1(Mockito.anyString())).thenReturn(Optional.of(new Address()));
         Mockito.when(productRepository.findById(Mockito.anyLong())).thenReturn(Optional.of(Product.builder().id(1L).build()));
@@ -56,6 +60,9 @@ public class WebOrderServiceTest {
 
         LocalUser user = LocalUser.builder().addresses(Arrays.asList(new Address())).build();
 
+        byte[] bytes = new byte[10];
+
+        Mockito.when(invoiceService.generateInvoice(Mockito.any(InvoiceJsonBody.class))).thenReturn(bytes);
 
         Assertions.assertNotNull(webOrderService.createOrder(orderBody, user));
     }
@@ -70,7 +77,7 @@ public class WebOrderServiceTest {
         OrderBody orderBody = OrderBody.builder().address_line_1("addressLine1").products(Arrays.asList(new ProductBody(1L, 1), new ProductBody(1L, 1))).build();
 
         ApiResponseFailureException ex = Assertions.assertThrows(ApiResponseFailureException.class, () -> webOrderService.createOrder(orderBody, new LocalUser()));
-        Assertions.assertEquals(ex.getHttpStatus(), HttpStatus.CONFLICT);
+        Assertions.assertEquals(ex.getFailureType(), FailureType.OUT_OF_STOCK);
     }
 
     @Test
@@ -82,7 +89,7 @@ public class WebOrderServiceTest {
         OrderBody orderBody = OrderBody.builder().address_line_1("addressLine1").products(Arrays.asList(new ProductBody(1L, 1), new ProductBody(1L, 1))).build();
 
         ApiResponseFailureException ex = Assertions.assertThrows(ApiResponseFailureException.class, () -> webOrderService.createOrder(orderBody, new LocalUser()));
-        Assertions.assertEquals(ex.getHttpStatus(), HttpStatus.BAD_REQUEST);
+        Assertions.assertEquals(ex.getFailureType(), FailureType.PRODUCT_NOT_FOUND);
     }
 
     @Test
@@ -93,7 +100,7 @@ public class WebOrderServiceTest {
         OrderBody orderBody = OrderBody.builder().address_line_1("addressLine1").products(Arrays.asList(new ProductBody(1L, 1), new ProductBody(1L, 1))).build();
 
         ApiResponseFailureException ex = Assertions.assertThrows(ApiResponseFailureException.class, () -> webOrderService.createOrder(orderBody, new LocalUser()));
-        Assertions.assertEquals(ex.getHttpStatus(), HttpStatus.BAD_REQUEST);
+        Assertions.assertEquals(ex.getFailureType(), FailureType.ADDRESS_NOT_FOUND);
     }
 
     @Test
@@ -109,6 +116,6 @@ public class WebOrderServiceTest {
         Mockito.when(webOrderRepository.findById(Mockito.anyLong())).thenReturn(Optional.empty());
 
         ApiResponseFailureException ex = Assertions.assertThrows(ApiResponseFailureException.class, () -> webOrderService.deleteOrder(5L));
-        Assertions.assertEquals(ex.getHttpStatus(), HttpStatus.BAD_REQUEST);
+        Assertions.assertEquals(ex.getFailureType(), FailureType.ORDER_NOT_FOUND);
     }
 }

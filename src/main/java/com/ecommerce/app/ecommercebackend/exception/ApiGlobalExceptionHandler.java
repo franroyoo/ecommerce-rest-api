@@ -9,7 +9,7 @@ public class ApiGlobalExceptionHandler {
 
     @ExceptionHandler(ApiResponseFailureException.class)
     public ResponseEntity<ApiResponseError> handleApiResponseFailureException(ApiResponseFailureException ex){
-        ApiResponseError errorResponse = new ApiResponseError(ex.getMessage(), ex.getHttpStatus());
+        ApiResponseError errorResponse = new ApiResponseError(ex.getFailureType().getHttpStatus(), ex.getFailureType().getErrorMessage(), ex.getDetail());
         return ResponseEntity.status(errorResponse.getHttpStatus()).body(errorResponse);
     }
 }
