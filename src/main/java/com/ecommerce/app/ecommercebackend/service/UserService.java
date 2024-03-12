@@ -3,38 +3,50 @@ package com.ecommerce.app.ecommercebackend.service;
 import com.ecommerce.app.ecommercebackend.api.dto.LoginBody;
 import com.ecommerce.app.ecommercebackend.api.dto.RegistrationBody;
 import com.ecommerce.app.ecommercebackend.api.repository.LocalUserRepository;
+import com.ecommerce.app.ecommercebackend.api.repository.RoleRepository;
 import com.ecommerce.app.ecommercebackend.api.repository.VerificationTokenRepository;
 import com.ecommerce.app.ecommercebackend.exception.EmailFailureException;
 import com.ecommerce.app.ecommercebackend.exception.UserAlreadyExistsException;
 import com.ecommerce.app.ecommercebackend.exception.UserNotVerifiedException;
 import com.ecommerce.app.ecommercebackend.model.LocalUser;
+import com.ecommerce.app.ecommercebackend.model.Role;
 import com.ecommerce.app.ecommercebackend.model.VerificationToken;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class UserService {
 
-    private LocalUserRepository localUserRepository;
-    private VerificationTokenRepository verificationTokenRepository;
-    private EncryptionService encryptionService;
-    private JWTService jwtService;
-    private EmailService emailService;
+    private final LocalUserRepository localUserRepository;
+    private final VerificationTokenRepository verificationTokenRepository;
+    private final EncryptionService encryptionService;
+    private final JWTService jwtService;
+    private final EmailService emailService;
+    private final RoleRepository roleRepository;
+    private AuthenticationManager authenticationManager;
 
     @Autowired
     public UserService(LocalUserRepository localUserRepository, EncryptionService encryptionService, JWTService jwtService, VerificationTokenRepository verificationTokenRepository
-            , EmailService emailService) {
+            , EmailService emailService, RoleRepository roleRepository, AuthenticationManager authenticationManager) {
         this.localUserRepository = localUserRepository;
         this.encryptionService = encryptionService;
         this.jwtService = jwtService;
         this.verificationTokenRepository = verificationTokenRepository;
         this.emailService = emailService;
+        this.roleRepository = roleRepository;
+        this.authenticationManager = authenticationManager;
     }
 
     public LocalUser registerUser(RegistrationBody registrationBody) throws UserAlreadyExistsException, EmailFailureException {
@@ -47,10 +59,14 @@ public class UserService {
 
 
         LocalUser user = new LocalUser();
+
         user.setUsername(registrationBody.getUsername());
         user.setEmail(registrationBody.getEmail());
         user.setFirstName(registrationBody.getFirstName());
         user.setLastName(registrationBody.getLastName());
+
+        Role role = roleRepository.findByName("ROLE_USER").get();
+        user.setRoles(Collections.singletonList(role));
 
         user.setPassword(encryptionService.encryptPassword(registrationBody.getPassword()));
 
@@ -94,6 +110,7 @@ public class UserService {
             if(encryptionService.verifyPassword(loginBody.getPassword(),user.getPassword())){
 
                 if (user.isEmailVerified()){
+
                     return jwtService.generateJWT(user);
                 }else{
 
@@ -137,4 +154,5 @@ public class UserService {
         }
         return false;
     }
+
 }

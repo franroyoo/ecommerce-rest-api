@@ -1,6 +1,7 @@
 package com.ecommerce.app.ecommercebackend.api.dto;
 
 import com.ecommerce.app.ecommercebackend.model.Address;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -22,5 +23,6 @@ public class OrderBody {
 
     @NotNull
     @NotBlank
-    private String address_line_1;
+    @JsonProperty("address_line_1")
+    private String addressLine1;
 }

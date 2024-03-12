@@ -74,7 +74,7 @@ public class WebOrderControllerTest {
 
 
         OrderBody orderBody = OrderBody.builder()
-                .address_line_1("address")
+                .addressLine1("address")
                 .products(Arrays.asList(new ProductBody(2L, 5), new ProductBody(3L,6)))
                 .build();
 

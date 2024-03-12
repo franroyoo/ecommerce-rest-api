@@ -12,6 +12,7 @@ import com.ecommerce.app.ecommercebackend.exception.*;
 import com.ecommerce.app.ecommercebackend.model.*;
 import com.ecommerce.app.ecommercebackend.validation.FailureType;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.internal.runners.statements.Fail;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.transaction.annotation.Transactional;
@@ -55,9 +56,8 @@ public class WebOrderService {
 
         WebOrder order = new WebOrder();
 
-        Optional<Address> opAddress = addressRepository.findByAddressLine1(orderBody.getAddress_line_1());
-        Address address = opAddress.orElseThrow(() -> new ApiResponseFailureException(FailureType.ADDRESS_NOT_FOUND,
-                "The address does not exist in your account. Try an existing address or add a new one"));
+        Address address = addressRepository.findByAddressLine1AndLocalUser_Id(orderBody.getAddressLine1(),user.getId()).orElseThrow(() -> new ApiResponseFailureException(FailureType.ADDRESS_NOT_FOUND,
+                "The address could not be found in your account. Please add it or try a new one"));
 
         for (ProductBody productDTO : orderBody.getProducts()){
 

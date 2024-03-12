@@ -50,7 +50,7 @@ public class WebOrderServiceTest {
     @Test
     public void GivenOrderBody_WhenCreateOrder_ThenCreateOrderSuccessfullyAndReturnInvoice(){
 
-        Mockito.when(addressRepository.findByAddressLine1(Mockito.anyString())).thenReturn(Optional.of(new Address()));
+        Mockito.when(addressRepository.findByAddressLine1AndLocalUser_Id(Mockito.any(String.class), Mockito.anyInt())).thenReturn(Optional.of(new Address()));
         Mockito.when(productRepository.findById(Mockito.anyLong())).thenReturn(Optional.of(Product.builder().id(1L).build()));
         Mockito.when(inventoryRepository.findQuantityByProductId(Mockito.anyLong())).thenReturn(1000L);
         Mockito.doNothing().when(inventoryRepository).updateQuantityByProductId(Mockito.anyLong(), Mockito.anyLong());
@@ -70,11 +70,11 @@ public class WebOrderServiceTest {
     @Test
     public void GivenOrderBody_WhenCreateOrder_ThenThrowExceptionDueToNoStock() throws ApiResponseFailureException {
 
-        Mockito.when(addressRepository.findByAddressLine1(Mockito.anyString())).thenReturn(Optional.of(new Address()));
+        Mockito.when(addressRepository.findByAddressLine1AndLocalUser_Id(Mockito.any(String.class), Mockito.anyInt())).thenReturn(Optional.of(new Address()));
         Mockito.when(productRepository.findById(Mockito.anyLong())).thenReturn(Optional.of(Product.builder().id(1L).build()));
         Mockito.when(inventoryRepository.findQuantityByProductId(Mockito.anyLong())).thenReturn(0L);
 
-        OrderBody orderBody = OrderBody.builder().address_line_1("addressLine1").products(Arrays.asList(new ProductBody(1L, 1), new ProductBody(1L, 1))).build();
+        OrderBody orderBody = OrderBody.builder().addressLine1("addressLine1").products(Arrays.asList(new ProductBody(1L, 1), new ProductBody(1L, 1))).build();
 
         ApiResponseFailureException ex = Assertions.assertThrows(ApiResponseFailureException.class, () -> webOrderService.createOrder(orderBody, new LocalUser()));
         Assertions.assertEquals(ex.getFailureType(), FailureType.OUT_OF_STOCK);
@@ -83,10 +83,10 @@ public class WebOrderServiceTest {
     @Test
     public void GivenOrderBody_WhenCreateOrder_ThenThrowExceptionDueToProductNotFound() throws ApiResponseFailureException{
 
-        Mockito.when(addressRepository.findByAddressLine1(Mockito.anyString())).thenReturn(Optional.of(new Address()));
+        Mockito.when(addressRepository.findByAddressLine1AndLocalUser_Id(Mockito.any(String.class), Mockito.anyInt())).thenReturn(Optional.of(new Address()));
         Mockito.when(productRepository.findById(Mockito.anyLong())).thenReturn(Optional.empty());
 
-        OrderBody orderBody = OrderBody.builder().address_line_1("addressLine1").products(Arrays.asList(new ProductBody(1L, 1), new ProductBody(1L, 1))).build();
+        OrderBody orderBody = OrderBody.builder().addressLine1("addressLine1").products(Arrays.asList(new ProductBody(1L, 1), new ProductBody(1L, 1))).build();
 
         ApiResponseFailureException ex = Assertions.assertThrows(ApiResponseFailureException.class, () -> webOrderService.createOrder(orderBody, new LocalUser()));
         Assertions.assertEquals(ex.getFailureType(), FailureType.PRODUCT_NOT_FOUND);
@@ -95,9 +95,9 @@ public class WebOrderServiceTest {
     @Test
     public void GivenOrderBody_WhenCreateOrder_ThenThrowExceptionDueToAddressNotFound(){
 
-        Mockito.when(addressRepository.findByAddressLine1(Mockito.anyString())).thenReturn(Optional.empty());
+        Mockito.when(addressRepository.findByAddressLine1AndLocalUser_Id(Mockito.any(String.class), Mockito.anyInt())).thenReturn(Optional.empty());
 
-        OrderBody orderBody = OrderBody.builder().address_line_1("addressLine1").products(Arrays.asList(new ProductBody(1L, 1), new ProductBody(1L, 1))).build();
+        OrderBody orderBody = OrderBody.builder().addressLine1("addressLine1").products(Arrays.asList(new ProductBody(1L, 1), new ProductBody(1L, 1))).build();
 
         ApiResponseFailureException ex = Assertions.assertThrows(ApiResponseFailureException.class, () -> webOrderService.createOrder(orderBody, new LocalUser()));
         Assertions.assertEquals(ex.getFailureType(), FailureType.ADDRESS_NOT_FOUND);

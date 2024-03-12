@@ -5,16 +5,21 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.NoArgsConstructor;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "local_user")
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class LocalUser {
+public class LocalUser implements UserDetails {
     @Id
     @GeneratedValue(strategy=GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
@@ -43,6 +48,19 @@ public class LocalUser {
     @JsonIgnore
     @OneToMany(mappedBy = "localUser", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<VerificationToken> verificationTokens;
+
+    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @JoinTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id"),
+            inverseJoinColumns = @JoinColumn(name = "role_id", referencedColumnName = "id"))
+    private List<Role> roles = new ArrayList<>();
+
+    public List<Role> getRoles() {
+        return roles;
+    }
+
+    public void setRoles(List<Role> roles) {
+        this.roles = roles;
+    }
 
     @Column(name = "email_verified", nullable = false)
     @OrderBy("id desc")
@@ -107,6 +125,11 @@ public class LocalUser {
         this.email = email;
     }
 
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return getRoles().stream().map(role -> new SimpleGrantedAuthority(role.getName())).collect(Collectors.toList());
+    }
+
     public String getPassword() {
         return password;
     }
@@ -117,6 +140,26 @@ public class LocalUser {
 
     public String getUsername() {
         return username;
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return true;
     }
 
     public void setUsername(String username) {
