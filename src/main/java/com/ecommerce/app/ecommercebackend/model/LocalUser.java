@@ -143,21 +143,29 @@ public class LocalUser implements UserDetails {
     }
 
     @Override
+    @JsonIgnore
     public boolean isAccountNonExpired() {
         return true;
     }
 
     @Override
+    @JsonIgnore
     public boolean isAccountNonLocked() {
         return true;
     }
 
     @Override
+    @JsonIgnore
     public boolean isCredentialsNonExpired() {
         return true;
     }
 
+    public boolean isPremium(){
+        return getRoles().stream().anyMatch(r -> r.getName().equals("ROLE_PREMIUM"));
+    }
+
     @Override
+    @JsonIgnore
     public boolean isEnabled() {
         return true;
     }

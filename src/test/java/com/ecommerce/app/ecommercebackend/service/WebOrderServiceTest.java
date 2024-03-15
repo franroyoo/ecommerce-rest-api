@@ -56,7 +56,7 @@ public class WebOrderServiceTest {
         Mockito.doNothing().when(inventoryRepository).updateQuantityByProductId(Mockito.anyLong(), Mockito.anyLong());
         Mockito.when(webOrderRepository.save(Mockito.any(WebOrder.class))).thenReturn(new WebOrder());
 
-        OrderBody orderBody = OrderBody.builder().address_line_1("asasddasdas").products(Arrays.asList(new ProductBody(1L, 1), new ProductBody(1L, 1))).build();
+        OrderBody orderBody = OrderBody.builder().addressLine1("asasddasdas").products(Arrays.asList(new ProductBody(1L, 1), new ProductBody(1L, 1))).build();
 
         LocalUser user = LocalUser.builder().addresses(Arrays.asList(new Address())).build();
 

@@ -14,17 +14,10 @@ import com.ecommerce.app.ecommercebackend.model.VerificationToken;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 public class UserService {
@@ -34,19 +27,17 @@ public class UserService {
     private final EncryptionService encryptionService;
     private final JWTService jwtService;
     private final EmailService emailService;
-    private final RoleRepository roleRepository;
-    private AuthenticationManager authenticationManager;
 
+    private final RoleRepository roleRepository;
     @Autowired
     public UserService(LocalUserRepository localUserRepository, EncryptionService encryptionService, JWTService jwtService, VerificationTokenRepository verificationTokenRepository
-            , EmailService emailService, RoleRepository roleRepository, AuthenticationManager authenticationManager) {
+            , EmailService emailService, RoleRepository roleRepository) {
         this.localUserRepository = localUserRepository;
         this.encryptionService = encryptionService;
         this.jwtService = jwtService;
         this.verificationTokenRepository = verificationTokenRepository;
         this.emailService = emailService;
         this.roleRepository = roleRepository;
-        this.authenticationManager = authenticationManager;
     }
 
     public LocalUser registerUser(RegistrationBody registrationBody) throws UserAlreadyExistsException, EmailFailureException {
@@ -65,9 +56,9 @@ public class UserService {
         user.setFirstName(registrationBody.getFirstName());
         user.setLastName(registrationBody.getLastName());
 
-        Role role = roleRepository.findByName("ROLE_USER").get();
-        user.setRoles(Collections.singletonList(role));
+        Role roleUser = roleRepository.findByName("ROLE_USER").get();
 
+        user.setRoles(Collections.singletonList(roleUser));
         user.setPassword(encryptionService.encryptPassword(registrationBody.getPassword()));
 
 
@@ -87,9 +78,9 @@ public class UserService {
 
         VerificationToken verificationToken = new VerificationToken();
 
-        verificationToken.setToken(jwtService.generateVerificationJWT(user)); // token
-        verificationToken.setLocalUser(user); // user
-        verificationToken.setCreatedTimestamp(new Timestamp(System.currentTimeMillis())); // timestamp
+        verificationToken.setToken(jwtService.generateVerificationJWT(user));
+        verificationToken.setLocalUser(user);
+        verificationToken.setCreatedTimestamp(new Timestamp(System.currentTimeMillis()));
 
         if (user.getVerificationTokens() == null) {
             user.setVerificationTokens(new ArrayList<>());

@@ -29,6 +29,7 @@ public class WebSecurityConfig {
         http.addFilterBefore(jwtRequestFilter, AuthorizationFilter.class);
         http.authorizeHttpRequests()
                 .requestMatchers("/product/**","/auth/**","/v3/**","/swagger-ui/**","/error").permitAll()
+                .requestMatchers("/admin/**").hasAuthority("ROLE_ADMIN")
                 .anyRequest().authenticated();
         return http.build();
     }
