@@ -27,11 +27,11 @@ import java.util.stream.Collectors;
 @Service
 @Slf4j
 public class WebOrderService {
-    private WebOrderRepository webOrderRepository;
-    private ProductRepository productRepository;
-    private InventoryRepository inventoryRepository;
-    private AddressRepository addressRepository;
-    private InvoiceService invoiceService;
+    private final WebOrderRepository webOrderRepository;
+    private final ProductRepository productRepository;
+    private final InventoryRepository inventoryRepository;
+    private final AddressRepository addressRepository;
+    private final InvoiceService invoiceService;
 
     @Value("${email.developer}")
     private String developerEmail;

@@ -3,11 +3,13 @@ package com.ecommerce.app.ecommercebackend.service;
 import com.ecommerce.app.ecommercebackend.api.dto.LoginBody;
 import com.ecommerce.app.ecommercebackend.api.dto.RegistrationBody;
 import com.ecommerce.app.ecommercebackend.api.repository.LocalUserRepository;
+import com.ecommerce.app.ecommercebackend.api.repository.RoleRepository;
 import com.ecommerce.app.ecommercebackend.api.repository.VerificationTokenRepository;
 import com.ecommerce.app.ecommercebackend.exception.EmailFailureException;
 import com.ecommerce.app.ecommercebackend.exception.UserAlreadyExistsException;
 import com.ecommerce.app.ecommercebackend.exception.UserNotVerifiedException;
 import com.ecommerce.app.ecommercebackend.model.LocalUser;
+import com.ecommerce.app.ecommercebackend.model.Role;
 import com.ecommerce.app.ecommercebackend.model.VerificationToken;
 import com.icegreen.greenmail.configuration.GreenMailConfiguration;
 import com.icegreen.greenmail.junit5.GreenMailExtension;
@@ -22,16 +24,14 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cglib.core.Local;
 
 import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import static org.mockito.Mockito.*;
 
@@ -39,19 +39,21 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 public class UserServiceTest {
 
-    @RegisterExtension // necesario para testear emails
+    @RegisterExtension
     private static GreenMailExtension greenMailExtension = new GreenMailExtension(ServerSetupTest.SMTP)
             .withConfiguration(GreenMailConfiguration.aConfig().withUser("springboot", "secret"))
             .withPerMethodLifecycle(true);
 
     @Mock
-    private LocalUserRepository localUserRepository; // inyeccion de dependencia del repositorio
+    private LocalUserRepository localUserRepository;
     @Mock
     private VerificationTokenRepository verificationTokenRepository;
     @Mock
     private EncryptionService encryptionService;
     @Mock
     private JWTService jwtService;
+    @Mock
+    private RoleRepository roleRepository;
     @Mock
     private EmailService emailService;
 
@@ -70,8 +72,6 @@ public class UserServiceTest {
 
 
         when(localUserRepository.findByUsernameIgnoreCase(registrationBody.getUsername())).thenReturn(Optional.of(new LocalUser()));
-
-        // when(localUserRepository.findByEmailIgnoreCase(registrationBody.getEmail())).thenReturn(Optional.of(new LocalUser()));
 
 
         Assertions.assertThrows(UserAlreadyExistsException.class, () -> userService.registerUser(registrationBody));
@@ -116,34 +116,33 @@ public class UserServiceTest {
 
         when(localUserRepository.findByUsernameIgnoreCase(registrationBody.getUsername())).thenReturn(Optional.empty());
         when(localUserRepository.findByEmailIgnoreCase(registrationBody.getEmail())).thenReturn(Optional.empty());
-
-        LocalUser user = LocalUser.builder().username(registrationBody.getUsername())
-                .email(registrationBody.getEmail())
-                .firstName(registrationBody.getFirstName())
-                .lastName(registrationBody.getLastName())
-                .password(registrationBody.getPassword())
-                .build();
+        when(roleRepository.findByName(anyString())).thenReturn(new Role());
 
         when(encryptionService.encryptPassword(registrationBody.getPassword())).thenReturn("encryptedPass");
 
-        when(localUserRepository.save(any(LocalUser.class))).thenReturn(user); // save() crea una nueva instancia, por eso no usar user 2 veces
+        LocalUser user = LocalUser.builder()
+                .id(1)
+                .username(registrationBody.getUsername())
+                .email(registrationBody.getEmail())
+                .firstName(registrationBody.getFirstName())
+                .lastName(registrationBody.getLastName())
+                .password("encryptedPass")
+                .build();
 
-        when(jwtService.generateVerificationJWT(user)).thenReturn("superSecretGeneratedJWT");
+        when(localUserRepository.save(any(LocalUser.class))).thenReturn(user);
+
+        when(jwtService.generateVerificationJWT(any(LocalUser.class))).thenReturn("superSecretGeneratedJWT");
 
         doNothing().when(emailService).sendVerificationEmail(any(VerificationToken.class));
 
         when(verificationTokenRepository.save(any(VerificationToken.class))).thenReturn(new VerificationToken());
 
-        userService.registerUser(registrationBody);
+        LocalUser savedUser = userService.registerUser(registrationBody); // Llama al método real para guardar el usuario
 
-        Assertions.assertNotNull(user);
+        Assertions.assertNotNull(savedUser); // Verifica que el usuario devuelto no sea nulo
 
-        verify(localUserRepository).save(any(LocalUser.class));
-
-        verify(jwtService).generateVerificationJWT(user);
-
+        verify(jwtService).generateVerificationJWT(any(LocalUser.class));
         verify(emailService).sendVerificationEmail(any(VerificationToken.class));
-
         verify(verificationTokenRepository).save(any(VerificationToken.class));
     }
 

@@ -29,7 +29,7 @@ public class AdminService {
 
         if (!user.isPremium()){
 
-            Role rolePremium = roleRepository.findByName("ROLE_PREMIUM").get();
+            Role rolePremium = roleRepository.findByName("ROLE_PREMIUM");
 
             user.getRoles().add(rolePremium);
             localUserRepository.save(user);

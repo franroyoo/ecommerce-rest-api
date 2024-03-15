@@ -56,7 +56,8 @@ public class UserService {
         user.setFirstName(registrationBody.getFirstName());
         user.setLastName(registrationBody.getLastName());
 
-        Role roleUser = roleRepository.findByName("ROLE_USER").get();
+        //Role roleUser = roleRepository.findByName("ROLE_USER").orElseThrow();
+        Role roleUser = roleRepository.findByName("ROLE_USER"); //>
 
         user.setRoles(Collections.singletonList(roleUser));
         user.setPassword(encryptionService.encryptPassword(registrationBody.getPassword()));

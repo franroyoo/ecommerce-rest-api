@@ -25,10 +25,9 @@ public class RoleInitializer {
     }
 
     private void createRoleIfNotExists(String roleName) {
+        Role existingRole = roleRepository.findByName(roleName);
 
-        Optional<Role> opRole = roleRepository.findByName(roleName);
-
-        if (opRole.isEmpty()){
+        if (existingRole == null) {
             roleRepository.save(Role.builder().name(roleName).build());
         }
     }
