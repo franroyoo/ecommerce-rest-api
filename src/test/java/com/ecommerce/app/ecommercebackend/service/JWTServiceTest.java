@@ -3,6 +3,7 @@ package com.ecommerce.app.ecommercebackend.service;
 
 import com.ecommerce.app.ecommercebackend.api.repository.LocalUserRepository;
 import com.ecommerce.app.ecommercebackend.model.LocalUser;
+import com.ecommerce.app.ecommercebackend.model.Role;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -12,6 +13,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.TestPropertySource;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 @SpringBootTest
@@ -23,9 +26,11 @@ public class JWTServiceTest {
     public void GivenLocalUser_WhenGenerateJWT_ThenReturnJWT(){
 
         LocalUser user = LocalUser.builder()
-                        .password("password")
-                                .email("email@gmail.com")
-                                        .username("username").build();
+                .password("password")
+                .email("email@gmail.com")
+                .username("username")
+                .roles(new ArrayList<>(List.of(new Role("ROLE_USER"))))
+                .build();
 
         Assertions.assertNotNull(jwtService.generateJWT(user));
     }
@@ -47,6 +52,7 @@ public class JWTServiceTest {
         LocalUser user = LocalUser.builder()
                 .password("password")
                 .email("email@gmail.com")
+                .roles(new ArrayList<>(List.of(new Role("ROLE_USER"))))
                 .username("username").build();
 
         String jwt = jwtService.generateJWT(user);

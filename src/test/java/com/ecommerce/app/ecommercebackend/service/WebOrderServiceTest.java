@@ -58,7 +58,7 @@ public class WebOrderServiceTest {
 
         OrderBody orderBody = OrderBody.builder().addressLine1("asasddasdas").products(Arrays.asList(new ProductBody(1L, 1), new ProductBody(1L, 1))).build();
 
-        LocalUser user = LocalUser.builder().addresses(Arrays.asList(new Address())).build();
+        LocalUser user = LocalUser.builder().id(1).build();
 
         byte[] bytes = new byte[10];
 
@@ -76,7 +76,7 @@ public class WebOrderServiceTest {
 
         OrderBody orderBody = OrderBody.builder().addressLine1("addressLine1").products(Arrays.asList(new ProductBody(1L, 1), new ProductBody(1L, 1))).build();
 
-        ApiResponseFailureException ex = Assertions.assertThrows(ApiResponseFailureException.class, () -> webOrderService.createOrder(orderBody, new LocalUser()));
+        ApiResponseFailureException ex = Assertions.assertThrows(ApiResponseFailureException.class, () -> webOrderService.createOrder(orderBody, LocalUser.builder().id(1).build()));
         Assertions.assertEquals(ex.getFailureType(), FailureType.OUT_OF_STOCK);
     }
 
@@ -88,7 +88,7 @@ public class WebOrderServiceTest {
 
         OrderBody orderBody = OrderBody.builder().addressLine1("addressLine1").products(Arrays.asList(new ProductBody(1L, 1), new ProductBody(1L, 1))).build();
 
-        ApiResponseFailureException ex = Assertions.assertThrows(ApiResponseFailureException.class, () -> webOrderService.createOrder(orderBody, new LocalUser()));
+        ApiResponseFailureException ex = Assertions.assertThrows(ApiResponseFailureException.class, () -> webOrderService.createOrder(orderBody, LocalUser.builder().id(1).build()));
         Assertions.assertEquals(ex.getFailureType(), FailureType.PRODUCT_NOT_FOUND);
     }
 
@@ -99,7 +99,7 @@ public class WebOrderServiceTest {
 
         OrderBody orderBody = OrderBody.builder().addressLine1("addressLine1").products(Arrays.asList(new ProductBody(1L, 1), new ProductBody(1L, 1))).build();
 
-        ApiResponseFailureException ex = Assertions.assertThrows(ApiResponseFailureException.class, () -> webOrderService.createOrder(orderBody, new LocalUser()));
+        ApiResponseFailureException ex = Assertions.assertThrows(ApiResponseFailureException.class, () -> webOrderService.createOrder(orderBody, LocalUser.builder().id(1).build()));
         Assertions.assertEquals(ex.getFailureType(), FailureType.ADDRESS_NOT_FOUND);
     }
 

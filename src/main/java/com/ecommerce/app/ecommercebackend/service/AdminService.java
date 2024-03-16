@@ -12,8 +12,8 @@ import org.springframework.stereotype.Service;
 @Service
 public class AdminService {
 
-    private final LocalUserRepository localUserRepository;
-    private final RoleRepository roleRepository;
+    private LocalUserRepository localUserRepository;
+    private RoleRepository roleRepository;
 
     @Autowired
     public AdminService(LocalUserRepository localUserRepository, RoleRepository roleRepository) {

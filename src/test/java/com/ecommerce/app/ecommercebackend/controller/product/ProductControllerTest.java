@@ -43,7 +43,6 @@ public class ProductControllerTest {
 
         mockMvc.perform(get("/product")).andDo(print()).andExpect(status().is(HttpStatus.OK.value()));
 
-        //Mockito.verify(productService, Mockito.times(1)).getProductList();
     }
 
     @Test

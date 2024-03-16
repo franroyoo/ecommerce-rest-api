@@ -13,7 +13,6 @@ import com.ecommerce.app.ecommercebackend.model.Role;
 import com.ecommerce.app.ecommercebackend.model.VerificationToken;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
@@ -22,13 +21,13 @@ import java.util.*;
 @Service
 public class UserService {
 
-    private final LocalUserRepository localUserRepository;
-    private final VerificationTokenRepository verificationTokenRepository;
-    private final EncryptionService encryptionService;
-    private final JWTService jwtService;
-    private final EmailService emailService;
+    private LocalUserRepository localUserRepository;
+    private VerificationTokenRepository verificationTokenRepository;
+    private EncryptionService encryptionService;
+    private JWTService jwtService;
+    private EmailService emailService;
 
-    private final RoleRepository roleRepository;
+    private RoleRepository roleRepository;
     @Autowired
     public UserService(LocalUserRepository localUserRepository, EncryptionService encryptionService, JWTService jwtService, VerificationTokenRepository verificationTokenRepository
             , EmailService emailService, RoleRepository roleRepository) {
@@ -55,9 +54,8 @@ public class UserService {
         user.setEmail(registrationBody.getEmail());
         user.setFirstName(registrationBody.getFirstName());
         user.setLastName(registrationBody.getLastName());
-
-        //Role roleUser = roleRepository.findByName("ROLE_USER").orElseThrow();
-        Role roleUser = roleRepository.findByName("ROLE_USER"); //>
+;
+        Role roleUser = roleRepository.findByName("ROLE_USER");
 
         user.setRoles(Collections.singletonList(roleUser));
         user.setPassword(encryptionService.encryptPassword(registrationBody.getPassword()));

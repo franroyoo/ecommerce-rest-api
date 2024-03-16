@@ -116,18 +116,18 @@ public class UserServiceTest {
 
         when(localUserRepository.findByUsernameIgnoreCase(registrationBody.getUsername())).thenReturn(Optional.empty());
         when(localUserRepository.findByEmailIgnoreCase(registrationBody.getEmail())).thenReturn(Optional.empty());
-        when(roleRepository.findByName(anyString())).thenReturn(new Role());
-
-        when(encryptionService.encryptPassword(registrationBody.getPassword())).thenReturn("encryptedPass");
+        when(roleRepository.findByName(anyString())).thenReturn(new Role("ROLE_USER"));
 
         LocalUser user = LocalUser.builder()
-                .id(1)
                 .username(registrationBody.getUsername())
                 .email(registrationBody.getEmail())
                 .firstName(registrationBody.getFirstName())
+                .roles(Collections.singletonList(new Role("ROLE_USER")))
                 .lastName(registrationBody.getLastName())
                 .password("encryptedPass")
                 .build();
+
+        when(encryptionService.encryptPassword(anyString())).thenReturn("encryptedPass");
 
         when(localUserRepository.save(any(LocalUser.class))).thenReturn(user);
 

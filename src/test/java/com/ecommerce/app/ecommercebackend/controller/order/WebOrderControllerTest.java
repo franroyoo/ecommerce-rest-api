@@ -3,6 +3,7 @@ import com.ecommerce.app.ecommercebackend.api.dto.OrderBody;
 import com.ecommerce.app.ecommercebackend.api.dto.ProductBody;
 import com.ecommerce.app.ecommercebackend.exception.ApiResponseFailureException;
 import com.ecommerce.app.ecommercebackend.model.LocalUser;
+import com.ecommerce.app.ecommercebackend.model.Role;
 import com.ecommerce.app.ecommercebackend.model.WebOrder;
 import com.ecommerce.app.ecommercebackend.service.WebOrderService;
 import com.ecommerce.app.ecommercebackend.validation.FailureType;
@@ -49,11 +50,14 @@ public class WebOrderControllerTest {
 
     @BeforeEach
     public void setUp() {
-        LocalUser user = LocalUser.builder().username("thisIsAValidUsername").emailVerified(true).build();
-        authenticatedUser = new UsernamePasswordAuthenticationToken(user, null, new ArrayList<>());
+        LocalUser user = LocalUser.builder()
+                .username("thisIsAValidUsername")
+                .emailVerified(true)
+                .roles(new ArrayList<>(List.of(new Role("ROLE_USER"))))
+                .build();
+        authenticatedUser = new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
     }
     @Test
-    @WithUserDetails
     public void WhenGetMappingOrderList_ThenReturn200() throws Exception {
 
         List<WebOrder> orderList = Arrays.asList(new WebOrder(), new WebOrder(), new WebOrder());
@@ -67,7 +71,6 @@ public class WebOrderControllerTest {
 
 
     @Test
-    @WithUserDetails
     public void WhenPostMappingCreateOrder_ThenReturn200() throws Exception {
 
         Mockito.when(orderService.createOrder(Mockito.any(OrderBody.class), Mockito.any(LocalUser.class))).thenReturn(new byte[100]);
@@ -86,12 +89,14 @@ public class WebOrderControllerTest {
     }
 
     @Test
-    @WithUserDetails
     public void WhenPostMappingCreateOrder_ThenReturn400DueToNoStock() throws Exception {
 
         Mockito.when(orderService.createOrder(Mockito.any(OrderBody.class), Mockito.any(LocalUser.class))).thenThrow(new ApiResponseFailureException(FailureType.OUT_OF_STOCK, "Out of stock"));
 
-        OrderBody orderBody = OrderBody.builder().products(Arrays.asList(new ProductBody(), new ProductBody())).build();
+        OrderBody orderBody = OrderBody.builder()
+                .addressLine1("address")
+                .products(Arrays.asList(new ProductBody(2L, 5), new ProductBody(3L,6)))
+                .build();
 
         mockMvc.perform(post("/order/new").with(authentication(authenticatedUser))
                 .contentType(MediaType.APPLICATION_JSON)
@@ -101,18 +106,36 @@ public class WebOrderControllerTest {
     }
 
     @Test
-    @WithUserDetails
-    public void WhenPostMappingCreateOrder_ThenReturn400DueToProductNotFound() throws Exception {
+    public void WhenPostMappingCreateOrder_ThenReturn404DueToProductNotFound() throws Exception {
         Mockito.when(orderService.createOrder(Mockito.any(OrderBody.class), Mockito.any(LocalUser.class))).thenThrow(new ApiResponseFailureException(FailureType.PRODUCT_NOT_FOUND, "message"));
 
-        OrderBody orderBody = OrderBody.builder().products(Arrays.asList(new ProductBody(), new ProductBody())).build();
+        OrderBody orderBody = OrderBody.builder()
+                .addressLine1("address")
+                .products(Arrays.asList(new ProductBody(2L, 5), new ProductBody(3L,6)))
+                .build();
 
         mockMvc.perform(post("/order/new").with(authentication(authenticatedUser))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(mapper.writeValueAsString(orderBody)))
                 .andDo(print())
-                .andExpect(MockMvcResultMatchers.status().isBadRequest());
+                .andExpect(MockMvcResultMatchers.status().isNotFound());
     }
 
+    @Test
+    public void WhenPostMappingCreateOrder_ThenReturn404DueToAddressNotFound() throws Exception {
+        Mockito.when(orderService.createOrder(Mockito.any(OrderBody.class), Mockito.any(LocalUser.class)))
+                .thenThrow(new ApiResponseFailureException(FailureType.ADDRESS_NOT_FOUND, "message"));
+
+        OrderBody orderBody = OrderBody.builder()
+                .addressLine1("address")
+                .products(Arrays.asList(new ProductBody(2L, 5), new ProductBody(3L,6)))
+                .build();
+
+        mockMvc.perform(post("/order/new").with(authentication(authenticatedUser))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(orderBody)))
+                        .andDo(print())
+                        .andExpect(MockMvcResultMatchers.status().isNotFound());
+    }
 
 }
