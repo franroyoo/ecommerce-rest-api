@@ -1,4 +1,4 @@
-package com.ecommerce.app.ecommercebackend.api.dto;
+package com.ecommerce.app.ecommercebackend.api.dto.auth;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

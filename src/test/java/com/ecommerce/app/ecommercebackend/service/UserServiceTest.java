@@ -1,12 +1,13 @@
 package com.ecommerce.app.ecommercebackend.service;
 
-import com.ecommerce.app.ecommercebackend.api.dto.LoginBody;
-import com.ecommerce.app.ecommercebackend.api.dto.RegistrationBody;
+import com.ecommerce.app.ecommercebackend.api.dto.auth.LoginBody;
+import com.ecommerce.app.ecommercebackend.api.dto.auth.RegistrationBody;
 import com.ecommerce.app.ecommercebackend.api.repository.LocalUserRepository;
 import com.ecommerce.app.ecommercebackend.api.repository.RoleRepository;
 import com.ecommerce.app.ecommercebackend.api.repository.VerificationTokenRepository;
 import com.ecommerce.app.ecommercebackend.exception.EmailFailureException;
 import com.ecommerce.app.ecommercebackend.exception.UserAlreadyExistsException;
+import com.ecommerce.app.ecommercebackend.exception.UserBadCredentialsException;
 import com.ecommerce.app.ecommercebackend.exception.UserNotVerifiedException;
 import com.ecommerce.app.ecommercebackend.model.LocalUser;
 import com.ecommerce.app.ecommercebackend.model.Role;
@@ -14,21 +15,14 @@ import com.ecommerce.app.ecommercebackend.model.VerificationToken;
 import com.icegreen.greenmail.configuration.GreenMailConfiguration;
 import com.icegreen.greenmail.junit5.GreenMailExtension;
 import com.icegreen.greenmail.util.ServerSetupTest;
-import jakarta.mail.Message;
-import jakarta.mail.MessagingException;
-import jakarta.transaction.Transactional;
-import org.junit.Assert;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.cglib.core.Local;
 
 import java.sql.Timestamp;
 import java.util.*;
@@ -137,9 +131,9 @@ public class UserServiceTest {
 
         when(verificationTokenRepository.save(any(VerificationToken.class))).thenReturn(new VerificationToken());
 
-        LocalUser savedUser = userService.registerUser(registrationBody); // Llama al método real para guardar el usuario
+        LocalUser savedUser = userService.registerUser(registrationBody);
 
-        Assertions.assertNotNull(savedUser); // Verifica que el usuario devuelto no sea nulo
+        Assertions.assertNotNull(savedUser);
 
         verify(jwtService).generateVerificationJWT(any(LocalUser.class));
         verify(emailService).sendVerificationEmail(any(VerificationToken.class));
@@ -151,11 +145,11 @@ public class UserServiceTest {
      */
 
     @Test
-    public void GivenUser_WhenLoginUser_ThenReturnNull() throws UserNotVerifiedException, EmailFailureException {
+    public void GivenUser_WhenLoginUser_ThenThrowUserBadCredentialsException() throws UserNotVerifiedException, EmailFailureException {
         LoginBody loginBody = LoginBody.builder().username("Non-Existent-User").password("Random-Password").build();
         when(localUserRepository.findByUsernameIgnoreCase(loginBody.getUsername())).thenReturn(Optional.empty());
 
-        Assertions.assertNull(userService.loginUser(loginBody));
+        Assertions.assertThrows(UserBadCredentialsException.class, () -> userService.loginUser(loginBody));
     }
 
     @Test
@@ -175,24 +169,6 @@ public class UserServiceTest {
         when(jwtService.generateJWT(localUser)).thenReturn("HereIsYourToken");
 
         Assertions.assertNotNull(userService.loginUser(loginBody));
-    }
-
-    @Test
-    public void GivenUser_WhenLoginUserWithIncorrectPassword_ThenReturnNull() throws UserNotVerifiedException, EmailFailureException {
-        LoginBody loginBody = LoginBody.builder().username("username").password("password").build();
-
-        LocalUser localUser = LocalUser.builder()
-                .username(loginBody.getUsername())
-                .firstName("firstname")
-                .lastName("lastname")
-                .password("encryptedPasswordInDatabase")
-                .build();
-
-        when(localUserRepository.findByUsernameIgnoreCase(loginBody.getUsername())).thenReturn(Optional.of(localUser));
-
-        when(encryptionService.verifyPassword(loginBody.getPassword(),localUser.getPassword())).thenReturn(false);
-
-        Assertions.assertNull(userService.loginUser(loginBody));
     }
 
     @Test

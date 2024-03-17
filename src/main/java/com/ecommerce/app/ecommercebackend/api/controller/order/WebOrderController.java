@@ -7,6 +7,7 @@ import com.ecommerce.app.ecommercebackend.model.WebOrder;
 import com.ecommerce.app.ecommercebackend.service.WebOrderService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
@@ -51,18 +52,18 @@ public class WebOrderController {
             value = {
                 @ApiResponse(
                         responseCode = "200",
-                        description = "Create order successfully",
-                        content = @Content(mediaType = "application/json")
+                        description = "Order created successfully and invoice generated",
+                        content = @Content(mediaType = "application/pdf")
                 ),
                 @ApiResponse(
                         responseCode = "400",
                         description = "Out of stock",
-                        content = @Content
+                        content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseError.class))}
                 ),
                 @ApiResponse(
-                        responseCode = "409",
-                        description = "Product does not exist",
-                        content = @Content
+                        responseCode = "404",
+                        description = "Product not found or Address not found",
+                        content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseError.class))}
                 ),
 
                 @ApiResponse(
@@ -83,6 +84,28 @@ public class WebOrderController {
         return ResponseEntity.ok().headers(headers).body(orderPdf);
     }
 
+    @Operation(summary = "Delete order")
+    @ApiResponses(
+            value = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "Order deleted successfully",
+                            content = @Content(mediaType = "application/json")
+                    ),
+
+                    @ApiResponse(
+                            responseCode = "404",
+                            description = "Order not found",
+                            content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseError.class))}
+                    ),
+
+                    @ApiResponse(
+                            responseCode = "403",
+                            description = "User not authenticated",
+                            content = @Content
+                    )
+            }
+    )
     @DeleteMapping("/{id}")
     public ResponseEntity<Object> deleteOrder(@AuthenticationPrincipal LocalUser user, @PathVariable Long id){
         orderService.deleteOrder(id);

@@ -1,8 +1,10 @@
 package com.ecommerce.app.ecommercebackend.api.controller.auth;
 
-import com.ecommerce.app.ecommercebackend.api.dto.LoginBody;
-import com.ecommerce.app.ecommercebackend.api.dto.LoginResponse;
-import com.ecommerce.app.ecommercebackend.api.dto.RegistrationBody;
+import com.ecommerce.app.ecommercebackend.api.dto.auth.LoginBody;
+import com.ecommerce.app.ecommercebackend.api.dto.auth.LoginResponse;
+import com.ecommerce.app.ecommercebackend.api.dto.auth.RegistrationBody;
+import com.ecommerce.app.ecommercebackend.api.dto.auth.RegistrationResponse;
+import com.ecommerce.app.ecommercebackend.exception.ApiResponseError;
 import com.ecommerce.app.ecommercebackend.exception.EmailFailureException;
 import com.ecommerce.app.ecommercebackend.exception.UserAlreadyExistsException;
 import com.ecommerce.app.ecommercebackend.exception.UserNotVerifiedException;
@@ -18,7 +20,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -38,39 +39,38 @@ public class AuthenticationController {
                 @ApiResponse(
                         responseCode = "200",
                         description = "User registered successfully",
-                        content = @Content
+                        content = {@Content(mediaType = "application/json", schema = @Schema(implementation = RegistrationResponse.class))}
                 ),
 
                 @ApiResponse(
                         responseCode = "409",
                         description = "User already exists",
-                        content = @Content
+                        content = {@Content(mediaType = "application/json", schema = @Schema(implementation = RegistrationResponse.class))}
+
                 ),
 
                 @ApiResponse(
                         responseCode = "500",
                         description = "Email service failed",
-                        content = @Content
+                        content = {@Content(mediaType = "application/json", schema = @Schema(implementation = RegistrationResponse.class))}
                 ),
 
                 @ApiResponse(
                         responseCode = "400",
                         description = "Invalid request body",
-                        content = @Content
+                        content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseError.class))}
                 )
             }
     )
     @PostMapping("/register")
-    public ResponseEntity registerUser(@Valid @RequestBody RegistrationBody registrationBody){
-        try{
-            userService.registerUser(registrationBody);
-            return ResponseEntity.ok().build();
-        }catch(UserAlreadyExistsException ex){
-            return ResponseEntity.status(HttpStatus.CONFLICT).build();
-        } catch (EmailFailureException ex) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
-
+    public ResponseEntity<RegistrationResponse> registerUser(@Valid @RequestBody RegistrationBody registrationBody) throws EmailFailureException, UserAlreadyExistsException {
+        userService.registerUser(registrationBody);
+        RegistrationResponse registrationResponse = RegistrationResponse.builder()
+                .success(true)
+                .detail("Your registration has been processed successfully. Check your email to verify your account")
+                .httpStatus(HttpStatus.OK)
+                .build();
+        return ResponseEntity.ok(registrationResponse);
     }
 
     @Operation(summary = "Login user")
@@ -85,59 +85,39 @@ public class AuthenticationController {
                 @ApiResponse(
                         responseCode = "403",
                         description = "User not verified",
-                        content = @Content
+                        content = {@Content(mediaType = "application/json", schema = @Schema(implementation = LoginResponse.class))}
                 ),
 
                 @ApiResponse(
                         responseCode = "500",
                         description = "Email service failed",
-                        content = @Content
+                        content = {@Content(mediaType = "application/json", schema = @Schema(implementation = LoginResponse.class))}
                 ),
 
                 @ApiResponse(
                         responseCode = "400",
                         description = "Invalid request body",
-                        content = @Content
+                        content = {@Content(mediaType = "application/json", schema = @Schema(implementation = LoginResponse.class))}
                 ),
 
                 @ApiResponse(
                         responseCode = "401",
-                        description = "User not found",
-                        content = @Content
+                        description = "User or password not found",
+                        content = {@Content(mediaType = "application/json", schema = @Schema(implementation = LoginResponse.class))}
                 )
             }
     )
     @PostMapping("/login")
-    public ResponseEntity<LoginResponse> loginUser(@Valid @RequestBody LoginBody loginBody){
-        String jwt = null;
-        try {
-            jwt = userService.loginUser(loginBody);
-        } catch (UserNotVerifiedException ex) {
+    public ResponseEntity<LoginResponse> loginUser(@Valid @RequestBody LoginBody loginBody) throws UserNotVerifiedException, EmailFailureException {
 
-            LoginResponse response = new LoginResponse();
-            String reason = "USER_NOT_VERIFIED";
-            if (ex.isNewEmailSent()){
-                reason += "_EMAIL_RESENT";
-            }
+        String jwt = userService.loginUser(loginBody);
 
-            response.setSuccess(false);
-            response.setFailureReason(reason);
+        LoginResponse loginResponse = new LoginResponse();
+        loginResponse.setJwt(jwt);
+        loginResponse.setSuccess(true);
+        loginResponse.setDetail("You have logged in successfully and you now have access to your JWT token");
 
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
-
-        } catch (EmailFailureException ex) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
-
-        if (jwt == null){
-           return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-       }else {
-           LoginResponse loginResponse = new LoginResponse();
-           loginResponse.setJwt(jwt);
-            loginResponse.setSuccess(true);
-           return ResponseEntity.ok(loginResponse);
-       }
-
+        return ResponseEntity.ok(loginResponse);
     }
 
     @Operation(summary = "Get logged in user information")

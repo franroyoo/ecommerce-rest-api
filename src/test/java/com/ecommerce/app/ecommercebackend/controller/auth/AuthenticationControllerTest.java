@@ -1,30 +1,23 @@
 package com.ecommerce.app.ecommercebackend.controller.auth;
 
-import com.ecommerce.app.ecommercebackend.api.controller.auth.AuthenticationController;
-import com.ecommerce.app.ecommercebackend.api.dto.LoginBody;
-import com.ecommerce.app.ecommercebackend.api.dto.RegistrationBody;
-import com.ecommerce.app.ecommercebackend.exception.EmailFailureException;
-import com.ecommerce.app.ecommercebackend.exception.UserAlreadyExistsException;
+import com.ecommerce.app.ecommercebackend.api.dto.auth.LoginBody;
+import com.ecommerce.app.ecommercebackend.api.dto.auth.RegistrationBody;
+import com.ecommerce.app.ecommercebackend.exception.UserBadCredentialsException;
 import com.ecommerce.app.ecommercebackend.exception.UserNotVerifiedException;
 import com.ecommerce.app.ecommercebackend.model.LocalUser;
-import com.ecommerce.app.ecommercebackend.model.VerificationToken;
 import com.ecommerce.app.ecommercebackend.service.UserService;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.icegreen.greenmail.configuration.GreenMailConfiguration;
 import com.icegreen.greenmail.junit5.GreenMailExtension;
 import com.icegreen.greenmail.util.ServerSetupTest;
 import org.hamcrest.CoreMatchers;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.RegisterExtension;
-import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
@@ -36,16 +29,11 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.times;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-//@SpringBootTest
-//@AutoConfigureMockMvc
-//@ExtendWith(MockitoExtension.class)
 @SpringBootTest
 @AutoConfigureMockMvc
 @ExtendWith(MockitoExtension.class)
@@ -141,7 +129,7 @@ public class AuthenticationControllerTest {
         LoginBody loginBody = LoginBody.builder().
                 username("UserWantsToLogin").password("Ffhasbcd1234").build();
 
-        Mockito.when(userService.loginUser(any(LoginBody.class))).thenReturn(null);
+        Mockito.when(userService.loginUser(any(LoginBody.class))).thenThrow(UserBadCredentialsException.class);
 
         mockMvc.perform(post("/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -160,7 +148,7 @@ public class AuthenticationControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(mapper.writeValueAsString(body)))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.success", CoreMatchers.is(false)))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.failureReason").value("USER_NOT_VERIFIED_EMAIL_RESENT"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.detail").value("User is not verified, the email has been resent"))
                 .andExpect(status().is(HttpStatus.FORBIDDEN.value()));
     }
 
@@ -175,7 +163,7 @@ public class AuthenticationControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(mapper.writeValueAsString(body)))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.success", CoreMatchers.is(false)))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.failureReason").value("USER_NOT_VERIFIED"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.detail").value("User is not verified"))
                 .andExpect(status().is(HttpStatus.FORBIDDEN.value()));
     }
 

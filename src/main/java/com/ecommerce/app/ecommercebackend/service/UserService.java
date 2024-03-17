@@ -1,18 +1,20 @@
 package com.ecommerce.app.ecommercebackend.service;
 
-import com.ecommerce.app.ecommercebackend.api.dto.LoginBody;
-import com.ecommerce.app.ecommercebackend.api.dto.RegistrationBody;
+import com.ecommerce.app.ecommercebackend.api.dto.auth.LoginBody;
+import com.ecommerce.app.ecommercebackend.api.dto.auth.RegistrationBody;
 import com.ecommerce.app.ecommercebackend.api.repository.LocalUserRepository;
 import com.ecommerce.app.ecommercebackend.api.repository.RoleRepository;
 import com.ecommerce.app.ecommercebackend.api.repository.VerificationTokenRepository;
 import com.ecommerce.app.ecommercebackend.exception.EmailFailureException;
 import com.ecommerce.app.ecommercebackend.exception.UserAlreadyExistsException;
+import com.ecommerce.app.ecommercebackend.exception.UserBadCredentialsException;
 import com.ecommerce.app.ecommercebackend.exception.UserNotVerifiedException;
 import com.ecommerce.app.ecommercebackend.model.LocalUser;
 import com.ecommerce.app.ecommercebackend.model.Role;
 import com.ecommerce.app.ecommercebackend.model.VerificationToken;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
@@ -90,6 +92,7 @@ public class UserService {
         return verificationToken;
     }
 
+    @Transactional
     public String loginUser(LoginBody loginBody) throws UserNotVerifiedException, EmailFailureException {
 
         Optional<LocalUser> opUser = localUserRepository.findByUsernameIgnoreCase(loginBody.getUsername());
@@ -121,7 +124,7 @@ public class UserService {
                 }
             }
         }
-        return null;
+        throw new UserBadCredentialsException("User or password are incorrect, make sure you are using the correct credentials");
     }
 
     @Transactional
