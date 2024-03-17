@@ -40,7 +40,7 @@ public class JWTService {
         return JWT.create()
                 .withClaim(USERNAME_KEY, user.getUsername())
                 .withClaim(ROLES_KEY, user.getRoles().stream().map(Role::getName).collect(Collectors.toList()))
-                .withExpiresAt(new Date(System.currentTimeMillis() + (1000 * expiryInSeconds)))
+                .withExpiresAt(new Date(System.currentTimeMillis() + (1000L * expiryInSeconds)))
                 .withIssuer(issuer)
                 .sign(algorithm);
 
@@ -49,19 +49,15 @@ public class JWTService {
     public String generateVerificationJWT(LocalUser user){
         return JWT.create()
                 .withClaim(EMAIL_KEY, user.getEmail())
-                .withExpiresAt(new Date(System.currentTimeMillis() + (1000 * expiryInSeconds)))
+                .withExpiresAt(new Date(System.currentTimeMillis() + (1000L * expiryInSeconds)))
                 .withIssuer(issuer)
                 .sign(algorithm);
 
     }
 
     public String getUsername(String token) throws InvalidJWTException {
-        try{
-            DecodedJWT jwt = JWT.require(algorithm).build().verify(token);
-            return jwt.getClaim(USERNAME_KEY).asString();
-        }catch(Exception ex){
-            throw new InvalidJWTException();
-        }
+        DecodedJWT jwt = JWT.require(algorithm).build().verify(token);
+        return jwt.getClaim(USERNAME_KEY).asString();
     }
 
 
