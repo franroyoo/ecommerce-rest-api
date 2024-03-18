@@ -17,11 +17,6 @@ public class ApiGlobalExceptionHandler {
         return ResponseEntity.status(errorResponse.getHttpStatus()).body(errorResponse);
     }
 
-    @ExceptionHandler(InvalidJWTException.class)
-    public ResponseEntity handleInvalidJWTException(InvalidJWTException ex){
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-    }
-
     @ExceptionHandler(UserAlreadyExistsException.class)
     public ResponseEntity<RegistrationResponse> handleUserAlreadyExistsException(UserAlreadyExistsException ex){
         RegistrationResponse registrationResponse = RegistrationResponse.builder()

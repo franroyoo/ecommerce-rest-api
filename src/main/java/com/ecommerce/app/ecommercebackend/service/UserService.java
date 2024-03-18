@@ -139,6 +139,7 @@ public class UserService {
 
             if (!user.isEmailVerified()){
                 user.setEmailVerified(true);
+
                 localUserRepository.save(user);
                 verificationTokenRepository.deleteByLocalUser(user);
                 return true;
