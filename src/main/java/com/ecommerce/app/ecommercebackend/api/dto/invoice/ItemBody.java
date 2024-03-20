@@ -1,5 +1,6 @@
 package com.ecommerce.app.ecommercebackend.api.dto.invoice;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -10,5 +11,7 @@ import lombok.Data;
 public class ItemBody {
     private String name;
     private Integer quantity;
-    private Long unit_cost;
+
+    @JsonProperty("unit_cost")
+    private Long unitCost;
 }

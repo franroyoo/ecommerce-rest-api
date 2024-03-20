@@ -14,8 +14,5 @@ public interface VerificationTokenRepository extends ListCrudRepository<Verifica
 
     void deleteByLocalUser(LocalUser localUser);
 
-    List<VerificationToken> findByLocalUser_IdOrderByIdDesc(Integer id);
-
-
 
 }

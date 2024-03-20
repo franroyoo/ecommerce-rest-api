@@ -12,16 +12,12 @@ import com.ecommerce.app.ecommercebackend.exception.*;
 import com.ecommerce.app.ecommercebackend.model.*;
 import com.ecommerce.app.ecommercebackend.validation.FailureType;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.internal.runners.statements.Fail;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -59,36 +55,21 @@ public class WebOrderService {
         Address address = addressRepository.findByAddressLine1AndLocalUser_Id(orderBody.getAddressLine1(),user.getId()).orElseThrow(() -> new ApiResponseFailureException(FailureType.ADDRESS_NOT_FOUND,
                 "The address could not be found in your account. Please add it or try a new one"));
 
-        for (ProductBody productDTO : orderBody.getProducts()){
+        Map<Long, Integer> productsHashMap = getProductBodyMapWithoutDuplicates(orderBody);
 
-            Optional<Product> optionalProduct = productRepository.findById(productDTO.getProductId());
+        List<Product> productsFound = productRepository.findByIdInOrderById(productsHashMap.keySet());
 
-            if (optionalProduct.isPresent()){
+        verifyProductsExistenceAndStockAvailabilityOrElseThrow(productsHashMap, productsFound);
 
-                Product product = optionalProduct.get();
+       productsHashMap.forEach((productId, quantity) -> {
+            WebOrderQuantities webOrderQuantities = WebOrderQuantities.builder()
+                    .quantity(quantity)
+                    .product(productsFound.stream().filter(product -> product.getId() == productId).findFirst().get())
+                    .webOrder(order)
+                    .build();
 
-                Long inventoryQuantityForProduct = inventoryRepository.findQuantityByProductId(product.getId());
-
-                if (productDTO.getQuantity() > inventoryQuantityForProduct){
-                    log.warn("Out of stock for product {}", product.getId());
-                    throw new ApiResponseFailureException(FailureType.OUT_OF_STOCK,
-                            "No stock for the number of products requested for product id " + productDTO.getProductId());
-                }else{
-                    WebOrderQuantities webOrderQuantities = WebOrderQuantities.builder()
-                            .product(product)
-                            .quantity(productDTO.getQuantity())
-                            .webOrder(order)
-                            .build();
-
-                    orderQuantities.add(webOrderQuantities);
-                    inventoryRepository.updateQuantityByProductId(product.getId(), inventoryQuantityForProduct - productDTO.getQuantity());
-                }
-
-            }else {
-                throw new ApiResponseFailureException(FailureType.PRODUCT_NOT_FOUND, "Product could not be found for id " + productDTO.getProductId());
-            }
-
-        }
+            orderQuantities.add(webOrderQuantities);
+       });
 
         order.setLocalUser(user);
         order.setQuantities(orderQuantities);
@@ -101,10 +82,67 @@ public class WebOrderService {
                 .notes("For any questions regarding your order, please contact me at " + developerEmail)
                 .items(convertToItemBodyList(orderQuantities))
                 .number(order.getId())
-                .ship_to(address.getAddressLine1())
+                .shipTo(address.getAddressLine1())
                 .build();
 
         return invoiceService.generateInvoice(invoiceJsonBody);
+    }
+
+    private void verifyProductsExistenceAndStockAvailabilityOrElseThrow(Map<Long, Integer> productsHashMap, List<Product> productsFound) {
+
+        List<Long> productBodyIds = new ArrayList<>(productsHashMap.keySet().stream().toList());
+
+        List<Long> productsFoundIds = new ArrayList<>(productsFound.stream().map(Product::getId).toList());;
+
+        Collections.sort(productBodyIds);
+        Collections.sort(productsFoundIds);
+
+        // check if all products exist
+
+        if (!productBodyIds.equals(productsFoundIds)){
+
+            List<Long> missingProducts = productBodyIds.stream().filter(productId -> !productsFoundIds.contains(productId)).toList();
+
+            throw new ApiResponseFailureException(FailureType.PRODUCT_NOT_FOUND, "The following product ids were not found: " + missingProducts);
+        }
+
+        // check if all products have stock available
+
+        List<Inventory> inventoryList = inventoryRepository.findByProductIdInOrderByProductId(productsFoundIds);
+
+        Collections.sort(productsFoundIds);
+
+        List<String> productsWithNoStock = new ArrayList<>();
+
+        for (Inventory inventory : inventoryList){
+            if (inventory.getQuantity() < productsHashMap.get(inventory.getProduct().getId())){
+                productsWithNoStock.add(inventory.getProduct().getId().toString());
+            }else{
+                inventory.setQuantity(inventory.getQuantity() - productsHashMap.get(inventory.getProduct().getId()));
+            }
+        }
+
+        if (!productsWithNoStock.isEmpty()){
+            throw new ApiResponseFailureException(FailureType.OUT_OF_STOCK, "The following products do not have enough stock: " + productsWithNoStock);
+        }
+
+        inventoryRepository.saveAll(inventoryList);
+
+    }
+
+    private Map<Long,Integer> getProductBodyMapWithoutDuplicates(OrderBody orderBody){
+
+        Map<Long, Integer> productsHashMap = new HashMap<>();
+
+        for (ProductBody productDTO : orderBody.getProducts()){
+            if (productsHashMap.containsKey(productDTO.getProductId())){
+                productsHashMap.put(productDTO.getProductId(), productsHashMap.get(productDTO.getProductId()) + productDTO.getQuantity());
+            }else{
+                productsHashMap.put(productDTO.getProductId(), productDTO.getQuantity());
+            }
+        }
+
+        return productsHashMap;
     }
 
     private List<ItemBody> convertToItemBodyList(List<WebOrderQuantities> orderQuantities){
@@ -112,7 +150,7 @@ public class WebOrderService {
                 .map(wq -> ItemBody.builder()
                         .name(wq.getProduct().getName())
                         .quantity(wq.getQuantity())
-                        .unit_cost(wq.getProduct().getPrice())
+                        .unitCost(wq.getProduct().getPrice())
                         .build())
                 .collect(Collectors.toList());
     }

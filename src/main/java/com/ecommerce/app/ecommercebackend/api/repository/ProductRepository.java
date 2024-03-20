@@ -8,8 +8,11 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Repository
 public interface ProductRepository extends ListCrudRepository<Product, Long> {
     Optional<Product> findById(Long id);
+
+    List<Product> findByIdInOrderById(Set<Long> ids);
 }

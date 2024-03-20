@@ -24,7 +24,7 @@ public class InvoiceServiceTest {
                 .to("To")
                 .notes("This is a note")
                 .items(Arrays.asList(new ItemBody("name",5, 5L)))
-                .ship_to("emailtoshipto@gmail.com")
+                .shipTo("emailtoshipto@gmail.com")
                 .number(5L)
                 .build();
 
