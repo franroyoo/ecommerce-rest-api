@@ -11,6 +11,6 @@ My main goal is to extend its functionalities as I learn new technologies and be
 * Continuous code refactoring following best practices (DRY, SOLID, CLEAN CODE).
   
 ## UPCOMING FEATURES/CHANGES:
-Asynchronous programming in methods that require high execution time.
-Migration to Hexagonal Architecture.
-Discount system using Strategy pattern.
+* Asynchronous programming in methods that require high execution time.
+* Migration to Hexagonal Architecture.
+* Discount system using Strategy pattern.
