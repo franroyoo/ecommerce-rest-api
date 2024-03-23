@@ -1,4 +1,4 @@
-## REST API eCommerce
+## ECOMMERCE REST API
 REST API developed for didactic purposes.
 My main goal is to extend its functionalities as I learn new technologies and best practices. The API has the following characteristics:
 
